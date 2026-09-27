@@ -1,0 +1,17 @@
+# Database configuration
+db.php
+
+# Local database backups
+*.sql
+
+# Backup files/folders
+*Backup*
+*.zip
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Editor
+.vscode/
+.idea/
