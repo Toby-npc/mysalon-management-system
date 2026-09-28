@@ -52,7 +52,7 @@ body::before {
     content: "";
     position: fixed;
     inset: 0;
-    background-image: url("MySalon_FrontEnd/IMAGES/salon.png");
+    background-image: url("asset/salon.png");
     background-size: cover;
     background-position: center;
     filter: blur(8px);
@@ -282,7 +282,7 @@ nav .button {
     text-decoration: none;
     border: none;
     padding: 15px 34px;
-    border-radius: 2px;
+    border-radius: 30px;
     cursor: pointer;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 13px;
@@ -322,7 +322,7 @@ nav .button {
     letter-spacing: 0.06em;
     text-transform: uppercase;
     cursor: pointer;
-    border-radius: 2px;
+    border-radius: 30px;
     transition: border-color 0.2s ease, color 0.2s ease;
 }
 
@@ -702,7 +702,7 @@ select option {
     color: var(--copper-deep);
     border: 1px solid var(--copper);
     padding: 10px 20px;
-    border-radius: 2px;
+    border-radius: 30px;
     cursor: pointer;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
@@ -722,7 +722,7 @@ select option {
     color: var(--danger);
     border: 1px solid var(--danger);
     padding: 10px 20px;
-    border-radius: 2px;
+    border-radius: 30px;
     cursor: pointer;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
@@ -789,7 +789,7 @@ select option {
     text-decoration: none;
     padding: 15px;
     margin-bottom: 14px;
-    border-radius: 2px;
+    border-radius: 30px;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 13px;
     letter-spacing: 0.08em;
@@ -921,7 +921,7 @@ select option {
     text-decoration: none;
     border: 1px solid var(--line);
     padding: 10px 20px;
-    border-radius: 2px;
+    border-radius: 30px;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
     letter-spacing: 0.06em;
@@ -986,7 +986,7 @@ select option {
     text-decoration: none;
     border: none;
     padding: 11px 22px;
-    border-radius: 2px;
+    border-radius: 30px;
     cursor: pointer;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12.5px;
