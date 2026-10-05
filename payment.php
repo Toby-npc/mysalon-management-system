@@ -82,8 +82,7 @@ $stmt->bind_param(
 
 $stmt->execute();
 
-$result =
-    $stmt->get_result();
+$result = $stmt->get_result();
 
 
 // ==========================================
@@ -100,8 +99,7 @@ if ($result->num_rows === 0) {
 }
 
 
-$booking =
-    $result->fetch_assoc();
+$booking = $result->fetch_assoc();
 
 $stmt->close();
 
@@ -159,7 +157,6 @@ if ($promotion_active) {
             *
             ($discount / 100)
         );
-
 }
 
 
@@ -209,7 +206,6 @@ if ($paymentResult->num_rows > 0) {
 
     $existingPayment =
         $paymentResult->fetch_assoc();
-
 }
 
 
@@ -264,7 +260,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         "Online Banking",
 
-        "Credit / Debit Card"
+        "Credit / Debit Card",
+
+        "PayPal (Dummy)"
 
     ];
 
@@ -285,6 +283,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             "Please select a valid payment method.";
 
     } else {
+
+
+        // ==================================
+        // PAYPAL DUMMY
+        // ==================================
+        //
+        // PayPal tidak terus direkod sebagai
+        // paid.
+        //
+        // Customer akan dihantar ke halaman
+        // simulasi PayPal dahulu.
+        // ==================================
+
+        if ($payment_method === "PayPal (Dummy)") {
+
+            $conn->close();
+
+            header(
+                "Location: dummy_paypal.php?id="
+                .
+                $booking_id
+            );
+
+            exit();
+        }
 
 
         // ==================================
@@ -790,6 +813,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     <option value="Credit / Debit Card">
                         Credit / Debit Card
+                    </option>
+
+
+                    <option value="PayPal (Dummy)">
+                        PayPal (Dummy)
                     </option>
 
 
