@@ -1148,4 +1148,97 @@ footer {
         animation-iteration-count: 1 !important;
         transition-duration: 0.001ms !important;
     }
+   /* =========================================================
+   MATCHING BOXES
+   PASTE THIS AT THE VERY END OF MySalon(CSS).css
+   (below everything else, including the earlier additions)
+   Makes the form box and the card boxes the same
+   gray-green transparent style.
+   ========================================================= */
+
+
+/* ---------- One shared look for both kinds of box ---------- */
+
+.booking-form,
+.booking-card {
+    background: rgba(35, 58, 52, 0.88);
+    border: 1px solid var(--line-dark);
+    color: var(--cream);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 12px 30px -15px rgba(28, 43, 39, 0.5);
+}
+
+
+/* ---------- Text inside the cards (now light on dark) ---------- */
+
+.booking-card h3 {
+    color: var(--copper);
+    border-bottom: 1px dashed var(--line-dark);
+}
+
+.booking-card p {
+    color: #dbe4df;
+}
+
+.booking-card p strong,
+.booking-card p span {
+    color: #b7c4bd;
+}
+
+.booking-card label {
+    color: #dbe4df;
+}
+
+
+/* ---------- Fields inside cards: same dark fields as the form ---------- */
+
+.booking-card input,
+.booking-card select {
+    background: #182420;
+    color: var(--cream);
+    border-color: var(--line-dark);
+}
+
+.booking-card select option {
+    background: #182420;
+    color: var(--cream);
+}
+
+.booking-card input::placeholder {
+    color: #6c7a75;
+}
+
+/* makes the calendar and clock icons light, so they show on dark fields */
+.booking-form input[type="date"],
+.booking-form input[type="time"],
+.booking-card input[type="date"],
+.booking-card input[type="time"] {
+    color-scheme: dark;
+}
+
+
+/* ---------- Buttons: lighter colours so they show on dark ---------- */
+
+.booking-card .modify-btn {
+    color: #e3a77a;
+    border-color: var(--copper);
+}
+
+.booking-card .modify-btn:hover {
+    background: var(--copper);
+    color: var(--cream);
+}
+
+.booking-card .cancel-btn,
+.booking-card .button.delete-button {
+    color: #e8a3a3;
+    border-color: #e8a3a3;
+}
+
+.booking-card .cancel-btn:hover,
+.booking-card .button.delete-button:hover {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: var(--cream);
+}
 }
