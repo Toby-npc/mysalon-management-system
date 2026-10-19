@@ -181,10 +181,75 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         Login - MySalon
     </title>
 
+    <!-- FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
     <link
         rel="stylesheet"
         href="MySalon(CSS).css"
     >
+
+    <!-- LOGIN PAGE POLISH -->
+    <style>
+
+        .login-box h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 38px;
+            font-weight: 500;
+            line-height: 1.1;
+        }
+
+        .login-box h1 span {
+            font-style: italic;
+            color: var(--copper);
+        }
+
+        .login-box p {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 16px;
+            color: #4a443f;
+        }
+
+        .login-box label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            color: #4a443f;
+        }
+
+        .login-box input {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 15px;
+            padding: 14px 16px;
+        }
+
+        .login-box input:focus {
+            border-color: var(--copper);
+            box-shadow: 0 0 0 3px rgba(191, 122, 74, 0.18);
+        }
+
+        /* removes the grey outline around the Sign In button */
+        .login-button {
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .login-button.secondary {
+            border: 1px solid var(--copper);
+        }
+
+        /* nav brand uses the heading font too */
+        nav .logo {
+            font-family: 'Fraunces', serif;
+        }
+
+    </style>
 
 </head>
 
