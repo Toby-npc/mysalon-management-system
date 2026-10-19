@@ -1,271 +1,59 @@
 /* =========================================================
-   READABILITY + FONT FIXES
-   PASTE THIS AT THE VERY END OF MySalon(CSS).css
-   (later rules override the earlier ones, so nothing above
-   needs to be deleted)
+   MYSALON MANAGEMENT SYSTEM
+   COMPLETE STYLESHEET  (recovery.css + MySalon_CSS_PT2 merged)
    ========================================================= */
 
 
-/* ---------- Title panels: text no longer sits on the raw photo ---------- */
+/* ================= DESIGN TOKENS ================= */
 
-.section-title,
-.dashboard-header {
-    background: rgba(246, 241, 229, 0.88);
-    padding: 28px 32px;
-    border-radius: 12px;
-    backdrop-filter: blur(4px);
-}
-
-.section-title h2,
-.dashboard-header h1 {
-    color: var(--ink);
-}
-
-.section-title p,
-.section-title p.sub,
-.dashboard-header p {
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 16px;
-    font-weight: 500;
-    color: #4a443f;
+:root {
+    --limestone: #ece6d8;
+    --cream: #f6f1e5;
+    --stone-dark: #1c2b27;
+    --stone-dark-2: #233a34;
+    --ink: #221f1c;
+    --copper: #bf7a4a;
+    --copper-deep: #9c5f37;
+    --sage: #7c9482;
+    --line: #d8cdb9;
+    --line-dark: #33473f;
+    --danger: #9c4444;
 }
 
 
-/* ---------- Home hero text ---------- */
+/* ================= GLOBAL SETTINGS ================= */
 
-.hero-text {
-    background: rgba(246, 241, 229, 0.8);
-    padding: 40px;
-    border-radius: 12px;
-    backdrop-filter: blur(4px);
-}
-
-.hero-text p {
-    font-size: 17.5px;
-    font-weight: 500;
-    color: #1a1a1a;
-    max-width: 480px;
-    margin-bottom: 34px;
-}
-
-
-/* ---------- Status messages (success / error / empty) ---------- */
-/* Targets the plain <p> messages that sit directly inside these containers */
-
-section > p,
-.booking-details > p,
-.booking-form > p {
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--ink);
-    background: rgba(246, 241, 229, 0.94);
-    border-left: 4px solid var(--sage);
-    border-radius: 6px;
-    padding: 14px 18px;
-}
-
-.notice {
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--ink);
-    background: rgba(246, 241, 229, 0.94);
-    border-left: 4px solid var(--sage);
-    border-radius: 6px;
-    padding: 14px 18px;
-    margin-bottom: 25px;
-    text-align: center;
-    width: 100%;
-}
-
-.notice.notice-error {
-    color: var(--danger);
-    border-left-color: var(--danger);
-}
-
-
-/* ---------- Cards (My Bookings, Staff Dashboard, Admin) ---------- */
-
-.booking-card {
-    background: rgba(246, 241, 229, 0.95);
-    margin-bottom: 24px;
-    box-shadow: 0 12px 30px -15px rgba(28, 43, 39, 0.35);
-}
-
-.booking-card h3 {
-    font-family: 'Fraunces', serif;
-    font-weight: 500;
-    font-size: 24px;
-}
-
-.booking-card p {
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 15.5px;
-    color: #2f2a26;
-}
-
-.booking-card p strong {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #6b6259;
-    margin-right: 8px;
-}
-
-/* Forms inside a light card use light fields (not the dark-room ones) */
-.booking-card label {
-    color: #6b6259;
-    font-weight: 500;
-}
-
-.booking-card input,
-.booking-card select {
-    background: #fffdf8;
-    color: var(--ink);
-    border-color: var(--line);
-    font-size: 15px;
-    padding: 14px 16px;
-}
-
-.booking-card select option {
-    background: #fffdf8;
-    color: var(--ink);
-}
-
-.booking-card input:focus,
-.booking-card select:focus {
-    border-color: var(--copper);
-    box-shadow: 0 0 0 3px rgba(191, 122, 74, 0.18);
-}
-
-
-/* ---------- Action buttons row ---------- */
-
-.booking-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-    margin-top: 22px;
-}
-
-.booking-actions form {
+* {
     margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.booking-actions .button {
-    padding: 12px 24px;
-    font-size: 12.5px;
+html {
+    scroll-behavior: smooth;
 }
 
-.button.delete-button {
-    background: transparent;
-    color: var(--danger);
-    border: 1px solid var(--danger);
-}
-
-.button.delete-button:hover {
-    background: var(--danger);
-    color: var(--cream);
-}
-
-
-/* ---------- Dark booking form ---------- */
-
-.booking-form {
-    background: rgba(28, 43, 39, 0.94);
-    color: var(--cream);
-}
-
-.booking-form label {
-    color: #dbe4df;
-    font-weight: 500;
-}
-
-.booking-form p {
+body {
+    position: relative;
+    background: var(--limestone);
+    color: var(--ink);
     font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 15px;
-    color: #dbe4df;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+
+    /* from recovery.css: keeps footer at the bottom */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-.booking-form input,
-.booking-form select {
-    font-size: 15px;
-    padding: 14px 16px;
-}
-
-.booking-form input[type="date"] {
-    color-scheme: dark;
-}
-
-.booking-form input:focus,
-.booking-form select:focus {
-    box-shadow: 0 0 0 3px rgba(191, 122, 74, 0.25);
-}
-
-/* Time slot buttons created by the booking page JavaScript */
-.time-slot {
-    font-family: 'IBM Plex Mono', monospace;
-    background: #182420;
-    border: 1px solid var(--line-dark);
-    color: #dbe4df;
-    padding: 11px 18px;
-    border-radius: 22px;
-    font-size: 13.5px;
-    cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-
-.time-slot:hover {
-    border-color: var(--copper);
-    color: var(--copper);
-}
-
-.time-slot.selected {
-    background: var(--copper);
-    border-color: var(--copper);
-    color: var(--cream);
-}
-
-
-/* ---------- Login + Sign Up ---------- */
-
-.login-box h1 {
-    font-size: 38px;
-    line-height: 1.1;
-}
-
-.login-box p {
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 16px;
-    color: #4a443f;
-}
-
-.login-box label {
-    font-size: 12px;
-    font-weight: 500;
-    color: #4a443f;
-}
-
-.login-box input {
-    font-size: 15px;
-    padding: 14px 16px;
-}
-
-.login-box input:focus {
-    border-color: var(--copper);
-    box-shadow: 0 0 0 3px rgba(191, 122, 74, 0.18);
-}
-
-.login-button {
-    border: none;
-    cursor: pointer;
-    font-weight: 500;
-}
-
-.login-button.secondary {
-    border: 1px solid var(--copper);
-}
+/* Blurred background image, shown behind every page */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("asset/salon.png");
+    background-size: cover;
+    background-position: center;
+    filter: blur(8px);
+    transform: scale(1.1);
