@@ -354,10 +354,139 @@ $result =
         Staff Dashboard - MySalon
     </title>
 
+    <!-- FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
     <link
         rel="stylesheet"
         href="MySalon(CSS).css"
     >
+
+    <!-- STAFF DASHBOARD: FONTS + READABILITY -->
+    <style>
+
+        nav .logo {
+            font-family: 'Fraunces', serif;
+        }
+
+        /* Title panels so the blurry photo can't wash out the text */
+        .section-title {
+            background: rgba(246, 241, 229, 0.88);
+            padding: 28px 32px;
+            border-radius: 12px;
+            backdrop-filter: blur(4px);
+        }
+
+        .section-title h2 {
+            font-family: 'Fraunces', serif;
+            font-weight: 500;
+            color: var(--ink);
+        }
+
+        .section-title p {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            color: #4a443f;
+        }
+
+        /* Status messages (success / error / empty) */
+        .notice {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--ink);
+            background: rgba(246, 241, 229, 0.92);
+            border-left: 4px solid var(--sage);
+            border-radius: 6px;
+            padding: 14px 18px;
+            margin-bottom: 25px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .notice.notice-error {
+            color: var(--danger);
+            border-left-color: var(--danger);
+        }
+
+        /* Cards */
+        .booking-card {
+            background: rgba(246, 241, 229, 0.95);
+            margin-bottom: 24px;
+            box-shadow: 0 12px 30px -15px rgba(28, 43, 39, 0.35);
+        }
+
+        .booking-card h3 {
+            font-family: 'Fraunces', serif;
+            font-weight: 500;
+            font-size: 24px;
+        }
+
+        .booking-card p {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 15.5px;
+            color: #2f2a26;
+        }
+
+        .booking-card p strong {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #6b6259;
+            margin-right: 8px;
+        }
+
+        /* Update-status form sits on a light card, so use light fields */
+        .booking-card label {
+            color: #6b6259;
+            font-weight: 500;
+        }
+
+        .booking-card select {
+            background: #fffdf8;
+            color: var(--ink);
+            border-color: var(--line);
+            font-size: 15px;
+            padding: 14px 16px;
+        }
+
+        .booking-card select option {
+            background: #fffdf8;
+            color: var(--ink);
+        }
+
+        .booking-card select:focus {
+            border-color: var(--copper);
+            box-shadow: 0 0 0 3px rgba(191, 122, 74, 0.18);
+        }
+
+        .booking-card form .button {
+            margin-top: 4px;
+        }
+
+        /* Buttons row */
+        .booking-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .booking-actions .button {
+            padding: 12px 24px;
+            font-size: 12.5px;
+        }
+
+    </style>
 
 </head>
 
@@ -509,18 +638,11 @@ $result =
 
 
 
-    <!-- ======================================
-         SUCCESS MESSAGE
-    ======================================= -->
+    <!-- SUCCESS MESSAGE -->
 
-    <?php if (
-        isset($_GET["updated"])
-    ): ?>
+    <?php if (isset($_GET["updated"])): ?>
 
-        <p style="
-            text-align:center;
-            margin-bottom:25px;
-        ">
+        <p class="notice" style="margin-top:30px;">
 
             Appointment status updated successfully!
 
@@ -530,19 +652,11 @@ $result =
 
 
 
-    <!-- ======================================
-         ERROR MESSAGE
-    ======================================= -->
+    <!-- ERROR MESSAGE -->
 
-    <?php if (
-        !empty($message)
-    ): ?>
+    <?php if (!empty($message)): ?>
 
-        <p style="
-            text-align:center;
-            margin-bottom:25px;
-            color:#9c4444;
-        ">
+        <p class="notice notice-error" style="margin-top:30px;">
 
             <?php
 
@@ -585,12 +699,10 @@ $result =
 
 
 
-    <div class="booking-details">
+    <div class="booking-details" style="margin-top:30px;">
 
 
-        <?php if (
-            $notifications->num_rows > 0
-        ): ?>
+        <?php if ($notifications->num_rows > 0): ?>
 
 
             <?php while (
@@ -630,9 +742,7 @@ $result =
                         <?php
 
                         echo htmlspecialchars(
-                            $notification[
-                                "service_name"
-                            ]
+                            $notification["service_name"]
                         );
 
                         ?>
@@ -650,9 +760,7 @@ $result =
                         <?php
 
                         echo htmlspecialchars(
-                            $notification[
-                                "customer_name"
-                            ]
+                            $notification["customer_name"]
                         );
 
                         ?>
@@ -672,9 +780,7 @@ $result =
                         echo date(
                             "d M Y",
                             strtotime(
-                                $notification[
-                                    "booking_date"
-                                ]
+                                $notification["booking_date"]
                             )
                         );
 
@@ -695,9 +801,7 @@ $result =
                         echo date(
                             "h:i A",
                             strtotime(
-                                $notification[
-                                    "booking_time"
-                                ]
+                                $notification["booking_time"]
                             )
                         );
 
@@ -717,9 +821,7 @@ $result =
 
                         echo ucfirst(
                             htmlspecialchars(
-                                $notification[
-                                    "status"
-                                ]
+                                $notification["status"]
                             )
                         );
 
@@ -737,10 +839,7 @@ $result =
         <?php else: ?>
 
 
-            <p style="
-                text-align:center;
-                width:100%;
-            ">
+            <p class="notice">
 
                 No new notifications.
 
@@ -779,12 +878,10 @@ $result =
          APPOINTMENTS
     ======================================= -->
 
-    <div class="booking-details">
+    <div class="booking-details" style="margin-top:30px;">
 
 
-        <?php if (
-            $result->num_rows > 0
-        ): ?>
+        <?php if ($result->num_rows > 0): ?>
 
 
             <?php while (
@@ -804,16 +901,12 @@ $result =
 
 
                 $discount =
-                    (float)$booking[
-                        "discount_percent"
-                    ];
+                    (float)$booking["discount_percent"];
 
 
                 $promotion_active =
                     (
-                        $booking[
-                            "promotion_status"
-                        ] === "active"
+                        $booking["promotion_status"] === "active"
                         &&
                         $discount > 0
                     );
@@ -1057,9 +1150,7 @@ $result =
 
 
 
-                    <!-- ==================================
-                         PAYMENT STATUS
-                    =================================== -->
+                    <!-- PAYMENT STATUS -->
 
                     <p>
 
@@ -1069,24 +1160,15 @@ $result =
 
                         <?php
 
-                        if (
-                            $booking["payment_status"]
-                            === "paid"
-                        ) {
+                        if ($booking["payment_status"] === "paid") {
 
                             echo "Paid";
 
-                        } elseif (
-                            $booking["payment_status"]
-                            === "pending"
-                        ) {
+                        } elseif ($booking["payment_status"] === "pending") {
 
                             echo "Pending";
 
-                        } elseif (
-                            $booking["payment_status"]
-                            === "failed"
-                        ) {
+                        } elseif ($booking["payment_status"] === "failed") {
 
                             echo "Failed";
 
@@ -1102,9 +1184,7 @@ $result =
 
 
 
-                    <!-- ==================================
-                         PAYMENT METHOD
-                    =================================== -->
+                    <!-- PAYMENT METHOD -->
 
                     <p>
 
@@ -1114,18 +1194,10 @@ $result =
 
                         <?php
 
-                        if (
-                            !empty(
-                                $booking[
-                                    "payment_method"
-                                ]
-                            )
-                        ) {
+                        if (!empty($booking["payment_method"])) {
 
                             echo htmlspecialchars(
-                                $booking[
-                                    "payment_method"
-                                ]
+                                $booking["payment_method"]
                             );
 
                         } else {
@@ -1140,9 +1212,7 @@ $result =
 
 
 
-                    <!-- ==================================
-                         DOWNLOAD RECEIPT
-                    =================================== -->
+                    <!-- DOWNLOAD RECEIPT -->
 
                     <?php if ($is_paid): ?>
 
@@ -1201,6 +1271,7 @@ $result =
                         <form
                             method="POST"
                             action="staff_dashboard.php"
+                            style="margin-top:20px;"
                         >
 
 
@@ -1233,10 +1304,7 @@ $result =
 
                                         <?php
 
-                                        if (
-                                            $booking["status"]
-                                            === "pending"
-                                        ) {
+                                        if ($booking["status"] === "pending") {
 
                                             echo "selected";
 
@@ -1256,10 +1324,7 @@ $result =
 
                                         <?php
 
-                                        if (
-                                            $booking["status"]
-                                            === "confirmed"
-                                        ) {
+                                        if ($booking["status"] === "confirmed") {
 
                                             echo "selected";
 
@@ -1309,9 +1374,7 @@ $result =
                         </form>
 
 
-                    <!-- ==================================
-                         FINAL STATUS
-                    =================================== -->
+                    <!-- FINAL STATUS -->
 
                     <?php else: ?>
 
@@ -1349,10 +1412,7 @@ $result =
         <?php else: ?>
 
 
-            <p style="
-                text-align:center;
-                width:100%;
-            ">
+            <p class="notice">
 
                 No appointments have been assigned to you.
 
