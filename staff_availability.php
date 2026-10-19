@@ -497,8 +497,8 @@ $result = $stmt->get_result();
 
 
 <div class="section-title"> 
-  <h2 style="font-size: 24px; font-weight: bold;"> Staff Availability </h2> 
-  <p style="font-size: 16px; font-weight: bold;"> Set and manage your available working hours </p> 
+  <h2 style="font-size: 60x; font-weight: bold;"> Staff Availability </h2> 
+  <p style="font-size: 30px; font-weight: bold;"> Set and manage your available working hours </p> 
 </div>
 
 
@@ -671,11 +671,11 @@ $result = $stmt->get_result();
 
    <div class="section-title" style="margin-top:60px;">
 
-    <h2 style="font-size: 24px; font-weight: bold;">
+    <h2 style="font-size: 60px; font-weight: bold;">
         My Availability
     </h2>
 
-    <p style="font-size: 16px; font-weight: bold;">
+    <p style="font-size: 30px; font-weight: bold;">
         Update or remove your working schedule
     </p>
 
