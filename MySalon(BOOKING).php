@@ -318,10 +318,116 @@ $services = $conn->query(
         Booking - MySalon
     </title>
 
+    <!-- FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
     <link
         rel="stylesheet"
         href="MySalon(CSS).css"
     >
+
+    <!-- BOOKING PAGE: FONTS + READABILITY -->
+    <style>
+
+        nav .logo {
+            font-family: 'Fraunces', serif;
+        }
+
+        /* Title panel so the blurry photo can't wash out the text */
+        .section-title {
+            background: rgba(246, 241, 229, 0.88);
+            padding: 28px 32px;
+            border-radius: 12px;
+            backdrop-filter: blur(4px);
+        }
+
+        .section-title h2 {
+            font-family: 'Fraunces', serif;
+            font-weight: 500;
+            color: var(--ink);
+        }
+
+        .section-title p {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            color: #4a443f;
+        }
+
+        /* Text inside the dark green form */
+        .booking-form {
+            background: rgba(28, 43, 39, 0.94);
+            color: var(--cream);
+        }
+
+        .booking-form label {
+            color: #dbe4df;
+            font-weight: 500;
+        }
+
+        .booking-form p {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 15px;
+            color: #dbe4df;
+        }
+
+        .booking-form input,
+        .booking-form select {
+            font-size: 15px;
+            padding: 14px 16px;
+        }
+
+        .booking-form input[type="date"] {
+            color-scheme: dark;
+        }
+
+        .booking-form input:focus,
+        .booking-form select:focus {
+            box-shadow: 0 0 0 3px rgba(191, 122, 74, 0.25);
+        }
+
+        /* Error message on the dark form */
+        .form-error {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 14px 18px;
+            border-radius: 6px;
+            background: rgba(246, 241, 229, 0.95);
+            border-left: 4px solid var(--danger);
+            color: var(--danger) !important;
+            font-weight: 500;
+        }
+
+        /* Time slot buttons (the JS creates them with class "time-slot") */
+        .time-slot {
+            font-family: 'IBM Plex Mono', monospace;
+            background: #182420;
+            border: 1px solid var(--line-dark);
+            color: #dbe4df;
+            padding: 11px 18px;
+            border-radius: 22px;
+            font-size: 13.5px;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .time-slot:hover {
+            border-color: var(--copper);
+            color: var(--copper);
+        }
+
+        .time-slot.selected {
+            background: var(--copper);
+            border-color: var(--copper);
+            color: var(--cream);
+        }
+
+    </style>
 
 </head>
 
@@ -336,9 +442,7 @@ $services = $conn->query(
 <nav>
 
 
-    <!-- ======================================
-         LEFT BRAND
-    ======================================= -->
+    <!-- LEFT BRAND -->
 
     <div class="mysalon-brand">
 
@@ -369,9 +473,7 @@ $services = $conn->query(
         </div>
 
 
-        <!-- ==================================
-             DROPDOWN
-        =================================== -->
+        <!-- DROPDOWN -->
 
         <div
             class="mysalon-dropdown"
@@ -432,9 +534,7 @@ $services = $conn->query(
 
 
 
-    <!-- ======================================
-         RIGHT NAVIGATION
-    ======================================= -->
+    <!-- RIGHT NAVIGATION -->
 
     <ul>
 
@@ -501,18 +601,12 @@ $services = $conn->query(
     <div class="booking-form">
 
 
-        <!-- ==================================
-             ERROR MESSAGE
-        =================================== -->
+        <!-- ERROR MESSAGE -->
 
         <?php if (!empty($message)): ?>
 
 
-            <p style="
-                text-align:center;
-                margin-bottom:20px;
-                color:#9c4444;
-            ">
+            <p class="form-error">
 
                 <?php
                 echo htmlspecialchars($message);
@@ -525,9 +619,7 @@ $services = $conn->query(
 
 
 
-        <!-- ==================================
-             BOOKING FORM
-        =================================== -->
+        <!-- BOOKING FORM -->
 
         <form
             method="POST"
@@ -537,9 +629,7 @@ $services = $conn->query(
 
 
 
-            <!-- ==================================
-                 CUSTOMER INFORMATION
-            =================================== -->
+            <!-- CUSTOMER INFORMATION -->
 
             <div class="form-row">
 
@@ -598,9 +688,7 @@ $services = $conn->query(
 
 
 
-            <!-- ==================================
-                 SERVICE + DATE
-            =================================== -->
+            <!-- SERVICE + DATE -->
 
             <div class="form-row">
 
@@ -762,9 +850,7 @@ $services = $conn->query(
 
 
 
-            <!-- ==================================
-                 TIME SLOT
-            =================================== -->
+            <!-- TIME SLOT -->
 
             <div class="form-group">
 
@@ -802,9 +888,7 @@ $services = $conn->query(
 
 
 
-            <!-- ==================================
-                 CONFIRM BOOKING
-            =================================== -->
+            <!-- CONFIRM BOOKING -->
 
             <button
                 type="submit"
