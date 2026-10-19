@@ -52,7 +52,7 @@ body::before {
     content: "";
     position: fixed;
     inset: 0;
-    background-image: url("asset/Salon3.png");
+    background-image: url("asset/salon.png");
     background-size: cover;
     background-position: center;
     filter: blur(8px);
