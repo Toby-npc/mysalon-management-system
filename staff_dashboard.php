@@ -30,12 +30,8 @@ $message = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $booking_id =
-        $_POST["booking_id"] ?? "";
-
-    $status =
-        $_POST["status"] ?? "";
-
+    $booking_id = $_POST["booking_id"] ?? "";
+    $status = $_POST["status"] ?? "";
 
     $allowed_status = [
         "pending",
@@ -44,54 +40,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         "cancelled"
     ];
 
-
     if (
         is_numeric($booking_id) &&
-        in_array(
-            $status,
-            $allowed_status,
-            true
-        )
+        in_array($status, $allowed_status, true)
     ) {
 
-        $booking_id =
-            (int)$booking_id;
+        $booking_id = (int)$booking_id;
 
 
         // ======================================
         // SEMAK BOOKING MILIK STAFF
         // ======================================
 
-        $check =
-            $conn->prepare(
-                "SELECT status
-                 FROM bookings
-                 WHERE booking_id = ?
-                 AND staff_id = ?"
-            );
-
-
-        $check->bind_param(
-            "ii",
-            $booking_id,
-            $staff_id
+        $check = $conn->prepare(
+            "SELECT status
+             FROM bookings
+             WHERE booking_id = ?
+             AND staff_id = ?"
         );
 
-
+        $check->bind_param("ii", $booking_id, $staff_id);
         $check->execute();
 
-
-        $checkResult =
-            $check->get_result();
-
+        $checkResult = $check->get_result();
 
         if ($checkResult->num_rows === 1) {
 
-            $currentBooking =
-                $checkResult->fetch_assoc();
-
-            $currentStatus =
-                $currentBooking["status"];
+            $currentBooking = $checkResult->fetch_assoc();
+            $currentStatus = $currentBooking["status"];
 
 
             // ==================================
@@ -103,9 +79,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $currentStatus === "cancelled"
             ) {
 
-                $message =
-                    "Completed or cancelled appointments cannot be changed.";
-
+                $message = "Completed or cancelled appointments cannot be changed.";
                 $check->close();
 
             } else {
@@ -115,51 +89,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 // UPDATE STATUS
                 // ==================================
 
-                $update =
-                    $conn->prepare(
-                        "UPDATE bookings
-                         SET status = ?
-                         WHERE booking_id = ?
-                         AND staff_id = ?"
-                    );
-
-
-                $update->bind_param(
-                    "sii",
-                    $status,
-                    $booking_id,
-                    $staff_id
+                $update = $conn->prepare(
+                    "UPDATE bookings
+                     SET status = ?
+                     WHERE booking_id = ?
+                     AND staff_id = ?"
                 );
 
-
+                $update->bind_param("sii", $status, $booking_id, $staff_id);
                 $update->execute();
 
                 $update->close();
-
                 $check->close();
 
-
-                header(
-                    "Location: staff_dashboard.php?updated=1"
-                );
-
+                header("Location: staff_dashboard.php?updated=1");
                 exit();
 
             }
 
         } else {
 
-            $message =
-                "Appointment not found.";
-
+            $message = "Appointment not found.";
             $check->close();
 
         }
 
     } else {
 
-        $message =
-            "Invalid appointment information.";
+        $message = "Invalid appointment information.";
 
     }
 
@@ -170,54 +127,43 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 // NOTIFICATIONS
 // ==========================================
 
-$notificationStmt =
-    $conn->prepare(
-        "SELECT
-            bookings.booking_id,
-            bookings.booking_date,
-            bookings.booking_time,
-            bookings.status,
+$notificationStmt = $conn->prepare(
+    "SELECT
+        bookings.booking_id,
+        bookings.booking_date,
+        bookings.booking_time,
+        bookings.status,
 
-            users.name AS customer_name,
+        users.name AS customer_name,
 
-            services.service_name
+        services.service_name
 
-         FROM bookings
+     FROM bookings
 
-         INNER JOIN users
-            ON bookings.customer_id =
-               users.user_id
+     INNER JOIN users
+        ON bookings.customer_id = users.user_id
 
-         INNER JOIN services
-            ON bookings.service_id =
-               services.service_id
+     INNER JOIN services
+        ON bookings.service_id = services.service_id
 
-         WHERE bookings.staff_id = ?
+     WHERE bookings.staff_id = ?
 
-         AND bookings.status IN (
-            'pending',
-            'confirmed'
-         )
+     AND bookings.status IN (
+        'pending',
+        'confirmed'
+     )
 
-         AND bookings.booking_date >= CURDATE()
+     AND bookings.booking_date >= CURDATE()
 
-         ORDER BY
-            bookings.booking_date ASC,
-            bookings.booking_time ASC"
-    );
-
-
-$notificationStmt->bind_param(
-    "i",
-    $staff_id
+     ORDER BY
+        bookings.booking_date ASC,
+        bookings.booking_time ASC"
 );
 
-
+$notificationStmt->bind_param("i", $staff_id);
 $notificationStmt->execute();
 
-
-$notifications =
-    $notificationStmt->get_result();
+$notifications = $notificationStmt->get_result();
 
 
 // ==========================================
@@ -246,8 +192,7 @@ $sql = "
 
             FROM payments
 
-            WHERE payments.booking_id =
-                  bookings.booking_id
+            WHERE payments.booking_id = bookings.booking_id
 
             AND payments.payment_status = 'paid'
 
@@ -262,8 +207,7 @@ $sql = "
 
             FROM payments
 
-            WHERE payments.booking_id =
-                  bookings.booking_id
+            WHERE payments.booking_id = bookings.booking_id
 
             ORDER BY payments.payment_id DESC
 
@@ -276,8 +220,7 @@ $sql = "
 
             FROM payments
 
-            WHERE payments.booking_id =
-                  bookings.booking_id
+            WHERE payments.booking_id = bookings.booking_id
 
             ORDER BY payments.payment_id DESC
 
@@ -290,8 +233,7 @@ $sql = "
 
             FROM payments
 
-            WHERE payments.booking_id =
-                  bookings.booking_id
+            WHERE payments.booking_id = bookings.booking_id
 
             AND payments.payment_status = 'paid'
 
@@ -304,12 +246,10 @@ $sql = "
     FROM bookings
 
     INNER JOIN users
-        ON bookings.customer_id =
-           users.user_id
+        ON bookings.customer_id = users.user_id
 
     INNER JOIN services
-        ON bookings.service_id =
-           services.service_id
+        ON bookings.service_id = services.service_id
 
     WHERE bookings.staff_id = ?
 
@@ -318,22 +258,12 @@ $sql = "
         bookings.booking_time ASC
 ";
 
+$stmt = $conn->prepare($sql);
 
-$stmt =
-    $conn->prepare($sql);
-
-
-$stmt->bind_param(
-    "i",
-    $staff_id
-);
-
-
+$stmt->bind_param("i", $staff_id);
 $stmt->execute();
 
-
-$result =
-    $stmt->get_result();
+$result = $stmt->get_result();
 
 ?>
 
@@ -364,74 +294,52 @@ $result =
 
     <link
         rel="stylesheet"
-        href="MySalon(CSS).css"
+        href="MySalon(CSS).css?v=2"
     >
 
-    <!-- STAFF DASHBOARD: FONTS + READABILITY -->
+    <!-- STAFF DASHBOARD: only things the main stylesheet does not cover.
+         Panel, card and field colours now come from MySalon(CSS).css,
+         so they match every other page. -->
     <style>
 
-        nav .logo {
-            font-family: 'Fraunces', serif;
-        }
-
-        /* Title panels so the blurry photo can't wash out the text */
-        .section-title {
-            background: rgba(246, 241, 229, 0.88);
-            padding: 28px 32px;
-            border-radius: 12px;
-            backdrop-filter: blur(4px);
-        }
-
-        .section-title h2 {
-            font-family: 'Fraunces', serif;
-            font-weight: 500;
-            color: var(--ink);
-        }
-
+        /* Subtitle text a little larger on this page */
         .section-title p {
-            font-family: 'IBM Plex Sans', sans-serif;
             font-size: 16px;
             font-weight: 500;
-            color: #4a443f;
         }
 
-        /* Status messages (success / error / empty) */
+        /* Status messages (success / error) */
         .notice {
-            font-family: 'IBM Plex Sans', sans-serif;
             font-size: 15px;
             font-weight: 500;
-            color: var(--ink);
-            background: rgba(246, 241, 229, 0.92);
+            color: var(--cream);
+            background: rgba(35, 58, 52, 0.88);
+            border: 1px solid var(--line-dark);
             border-left: 4px solid var(--sage);
             border-radius: 6px;
             padding: 14px 18px;
             margin-bottom: 25px;
             text-align: center;
             width: 100%;
+            backdrop-filter: blur(6px);
         }
 
         .notice.notice-error {
-            color: var(--danger);
+            color: #e8a3a3;
             border-left-color: var(--danger);
         }
 
-        /* Cards */
+        /* Cards: spacing and label style only (colours come from the CSS file) */
         .booking-card {
-            background: rgba(246, 241, 229, 0.95);
             margin-bottom: 24px;
-            box-shadow: 0 12px 30px -15px rgba(28, 43, 39, 0.35);
         }
 
         .booking-card h3 {
-            font-family: 'Fraunces', serif;
-            font-weight: 500;
             font-size: 24px;
         }
 
         .booking-card p {
-            font-family: 'IBM Plex Sans', sans-serif;
             font-size: 15.5px;
-            color: #2f2a26;
         }
 
         .booking-card p strong {
@@ -440,32 +348,16 @@ $result =
             font-weight: 500;
             letter-spacing: 0.06em;
             text-transform: uppercase;
-            color: #6b6259;
             margin-right: 8px;
         }
 
-        /* Update-status form sits on a light card, so use light fields */
-        .booking-card label {
-            color: #6b6259;
-            font-weight: 500;
-        }
-
         .booking-card select {
-            background: #fffdf8;
-            color: var(--ink);
-            border-color: var(--line);
             font-size: 15px;
             padding: 14px 16px;
         }
 
-        .booking-card select option {
-            background: #fffdf8;
-            color: var(--ink);
-        }
-
         .booking-card select:focus {
-            border-color: var(--copper);
-            box-shadow: 0 0 0 3px rgba(191, 122, 74, 0.18);
+            box-shadow: 0 0 0 3px rgba(191, 122, 74, 0.25);
         }
 
         .booking-card form .button {
@@ -559,11 +451,7 @@ $result =
 
                 Hi,
 
-                <?php
-                echo htmlspecialchars(
-                    $_SESSION["name"]
-                );
-                ?>
+                <?php echo htmlspecialchars($_SESSION["name"]); ?>
 
             </div>
 
@@ -591,11 +479,7 @@ $result =
 
                 Hi,
 
-                <?php
-                echo htmlspecialchars(
-                    $_SESSION["name"]
-                );
-                ?>
+                <?php echo htmlspecialchars($_SESSION["name"]); ?>
 
             </span>
 
@@ -658,13 +542,7 @@ $result =
 
         <p class="notice notice-error" style="margin-top:30px;">
 
-            <?php
-
-            echo htmlspecialchars(
-                $message
-            );
-
-            ?>
+            <?php echo htmlspecialchars($message); ?>
 
         </p>
 
@@ -687,9 +565,7 @@ $result =
 
         <p>
 
-            <?php
-            echo $notifications->num_rows;
-            ?>
+            <?php echo $notifications->num_rows; ?>
 
             active notification(s)
 
@@ -699,25 +575,18 @@ $result =
 
 
 
-    <div class="booking-details" style="margin-top:30px;">
+    <?php if ($notifications->num_rows > 0): ?>
+
+        <div class="booking-details" style="margin-top:30px;">
 
 
-        <?php if ($notifications->num_rows > 0): ?>
-
-
-            <?php while (
-                $notification =
-                $notifications->fetch_assoc()
-            ): ?>
+            <?php while ($notification = $notifications->fetch_assoc()): ?>
 
 
                 <div class="booking-card">
 
 
-                    <?php if (
-                        $notification["status"]
-                        === "pending"
-                    ): ?>
+                    <?php if ($notification["status"] === "pending"): ?>
 
                         <h3>
                             New / Pending Appointment
@@ -739,13 +608,7 @@ $result =
                             Service:
                         </strong>
 
-                        <?php
-
-                        echo htmlspecialchars(
-                            $notification["service_name"]
-                        );
-
-                        ?>
+                        <?php echo htmlspecialchars($notification["service_name"]); ?>
 
                     </p>
 
@@ -757,13 +620,7 @@ $result =
                             Customer:
                         </strong>
 
-                        <?php
-
-                        echo htmlspecialchars(
-                            $notification["customer_name"]
-                        );
-
-                        ?>
+                        <?php echo htmlspecialchars($notification["customer_name"]); ?>
 
                     </p>
 
@@ -775,16 +632,7 @@ $result =
                             Date:
                         </strong>
 
-                        <?php
-
-                        echo date(
-                            "d M Y",
-                            strtotime(
-                                $notification["booking_date"]
-                            )
-                        );
-
-                        ?>
+                        <?php echo date("d M Y", strtotime($notification["booking_date"])); ?>
 
                     </p>
 
@@ -796,16 +644,7 @@ $result =
                             Time:
                         </strong>
 
-                        <?php
-
-                        echo date(
-                            "h:i A",
-                            strtotime(
-                                $notification["booking_time"]
-                            )
-                        );
-
-                        ?>
+                        <?php echo date("h:i A", strtotime($notification["booking_time"])); ?>
 
                     </p>
 
@@ -817,15 +656,7 @@ $result =
                             Status:
                         </strong>
 
-                        <?php
-
-                        echo ucfirst(
-                            htmlspecialchars(
-                                $notification["status"]
-                            )
-                        );
-
-                        ?>
+                        <?php echo ucfirst(htmlspecialchars($notification["status"])); ?>
 
                     </p>
 
@@ -836,20 +667,9 @@ $result =
             <?php endwhile; ?>
 
 
-        <?php else: ?>
+        </div>
 
-
-            <p class="notice">
-
-                No new notifications.
-
-            </p>
-
-
-        <?php endif; ?>
-
-
-    </div>
+    <?php endif; ?>
 
 
 
@@ -884,10 +704,7 @@ $result =
         <?php if ($result->num_rows > 0): ?>
 
 
-            <?php while (
-                $booking =
-                $result->fetch_assoc()
-            ): ?>
+            <?php while ($booking = $result->fetch_assoc()): ?>
 
 
                 <?php
@@ -896,55 +713,34 @@ $result =
                 // CURRENT PROMOTION PRICE
                 // ==================================
 
-                $original_price =
-                    (float)$booking["price"];
+                $original_price = (float)$booking["price"];
 
+                $discount = (float)$booking["discount_percent"];
 
-                $discount =
-                    (float)$booking["discount_percent"];
+                $promotion_active = (
+                    $booking["promotion_status"] === "active"
+                    &&
+                    $discount > 0
+                );
 
-
-                $promotion_active =
-                    (
-                        $booking["promotion_status"] === "active"
-                        &&
-                        $discount > 0
-                    );
-
-
-                $current_price =
-                    $original_price;
-
+                $current_price = $original_price;
 
                 if ($promotion_active) {
 
                     $current_price =
                         $original_price
                         -
-                        (
-                            $original_price
-                            *
-                            ($discount / 100)
-                        );
+                        ($original_price * ($discount / 100));
 
                 }
 
+                $current_price = round($current_price, 2);
 
-                $current_price =
-                    round(
-                        $current_price,
-                        2
-                    );
-
-
-                $is_paid =
-                    (
-                        $booking["payment_status"]
-                        === "paid"
-                        &&
-                        $booking["paid_amount"]
-                        !== null
-                    );
+                $is_paid = (
+                    $booking["payment_status"] === "paid"
+                    &&
+                    $booking["paid_amount"] !== null
+                );
 
                 ?>
 
@@ -956,13 +752,7 @@ $result =
 
                     <h3>
 
-                        <?php
-
-                        echo htmlspecialchars(
-                            $booking["service_name"]
-                        );
-
-                        ?>
+                        <?php echo htmlspecialchars($booking["service_name"]); ?>
 
                     </h3>
 
@@ -976,13 +766,7 @@ $result =
                             Customer:
                         </strong>
 
-                        <?php
-
-                        echo htmlspecialchars(
-                            $booking["customer_name"]
-                        );
-
-                        ?>
+                        <?php echo htmlspecialchars($booking["customer_name"]); ?>
 
                     </p>
 
@@ -996,13 +780,7 @@ $result =
                             Email:
                         </strong>
 
-                        <?php
-
-                        echo htmlspecialchars(
-                            $booking["customer_email"]
-                        );
-
-                        ?>
+                        <?php echo htmlspecialchars($booking["customer_email"]); ?>
 
                     </p>
 
@@ -1016,13 +794,7 @@ $result =
                             Date:
                         </strong>
 
-                        <?php
-
-                        echo htmlspecialchars(
-                            $booking["booking_date"]
-                        );
-
-                        ?>
+                        <?php echo htmlspecialchars($booking["booking_date"]); ?>
 
                     </p>
 
@@ -1036,16 +808,7 @@ $result =
                             Time:
                         </strong>
 
-                        <?php
-
-                        echo date(
-                            "h:i A",
-                            strtotime(
-                                $booking["booking_time"]
-                            )
-                        );
-
-                        ?>
+                        <?php echo date("h:i A", strtotime($booking["booking_time"])); ?>
 
                     </p>
 
@@ -1064,14 +827,7 @@ $result =
                                 Amount Paid:
                             </strong>
 
-                            $<?php
-
-                            echo number_format(
-                                $booking["paid_amount"],
-                                2
-                            );
-
-                            ?>
+                            $<?php echo number_format($booking["paid_amount"], 2); ?>
 
                         </p>
 
@@ -1093,14 +849,7 @@ $result =
                                     opacity:0.65;
                                 ">
 
-                                    $<?php
-
-                                    echo number_format(
-                                        $original_price,
-                                        2
-                                    );
-
-                                    ?>
+                                    $<?php echo number_format($original_price, 2); ?>
 
                                 </span>
 
@@ -1113,14 +862,7 @@ $result =
                                     Promotion:
                                 </strong>
 
-                                <?php
-
-                                echo number_format(
-                                    $discount,
-                                    0
-                                );
-
-                                ?>% OFF
+                                <?php echo number_format($discount, 0); ?>% OFF
 
                             </p>
 
@@ -1134,14 +876,7 @@ $result =
                                 Current Price:
                             </strong>
 
-                            $<?php
-
-                            echo number_format(
-                                $current_price,
-                                2
-                            );
-
-                            ?>
+                            $<?php echo number_format($current_price, 2); ?>
 
                         </p>
 
@@ -1196,9 +931,7 @@ $result =
 
                         if (!empty($booking["payment_method"])) {
 
-                            echo htmlspecialchars(
-                                $booking["payment_method"]
-                            );
+                            echo htmlspecialchars($booking["payment_method"]);
 
                         } else {
 
@@ -1222,9 +955,7 @@ $result =
                         >
 
                             <a
-                                href="staff_download_receipt.php?id=<?php
-                                echo $booking["payment_id"];
-                                ?>"
+                                href="staff_download_receipt.php?id=<?php echo $booking["payment_id"]; ?>"
                                 class="button"
                             >
                                 Download Receipt
@@ -1244,15 +975,7 @@ $result =
                             Current Status:
                         </strong>
 
-                        <?php
-
-                        echo ucfirst(
-                            htmlspecialchars(
-                                $booking["status"]
-                            )
-                        );
-
-                        ?>
+                        <?php echo ucfirst(htmlspecialchars($booking["status"])); ?>
 
                     </p>
 
@@ -1278,11 +1001,8 @@ $result =
                             <input
                                 type="hidden"
                                 name="booking_id"
-                                value="<?php
-                                echo $booking["booking_id"];
-                                ?>"
+                                value="<?php echo $booking["booking_id"]; ?>"
                             >
-
 
 
                             <div class="form-group">
@@ -1298,67 +1018,32 @@ $result =
                                     required
                                 >
 
-
                                     <option
                                         value="pending"
-
-                                        <?php
-
-                                        if ($booking["status"] === "pending") {
-
-                                            echo "selected";
-
-                                        }
-
-                                        ?>
+                                        <?php if ($booking["status"] === "pending") { echo "selected"; } ?>
                                     >
-
                                         Pending
-
                                     </option>
-
-
 
                                     <option
                                         value="confirmed"
-
-                                        <?php
-
-                                        if ($booking["status"] === "confirmed") {
-
-                                            echo "selected";
-
-                                        }
-
-                                        ?>
+                                        <?php if ($booking["status"] === "confirmed") { echo "selected"; } ?>
                                     >
-
                                         Confirmed
-
                                     </option>
 
-
-
-                                    <option
-                                        value="completed"
-                                    >
+                                    <option value="completed">
                                         Completed
                                     </option>
 
-
-
-                                    <option
-                                        value="cancelled"
-                                    >
+                                    <option value="cancelled">
                                         Cancelled
                                     </option>
-
 
                                 </select>
 
 
                             </div>
-
 
 
                             <button
@@ -1379,23 +1064,13 @@ $result =
                     <?php else: ?>
 
 
-                        <p style="
-                            margin-top:20px;
-                        ">
+                        <p style="margin-top:20px;">
 
                             <strong>
                                 Final Status:
                             </strong>
 
-                            <?php
-
-                            echo ucfirst(
-                                htmlspecialchars(
-                                    $booking["status"]
-                                )
-                            );
-
-                            ?>
+                            <?php echo ucfirst(htmlspecialchars($booking["status"])); ?>
 
                         </p>
 
@@ -1450,128 +1125,74 @@ $result =
 
 <script>
 
-
-const logoTrigger =
-    document.getElementById(
-        "mysalonLogoTrigger"
-    );
-
-
-const dropdown =
-    document.getElementById(
-        "mysalonDropdown"
-    );
-
+const logoTrigger = document.getElementById("mysalonLogoTrigger");
+const dropdown = document.getElementById("mysalonDropdown");
 
 
 function toggleDropdown() {
 
-    dropdown.classList.toggle(
-        "mysalon-dropdown-open"
-    );
+    dropdown.classList.toggle("mysalon-dropdown-open");
 
+    const isOpen = dropdown.classList.contains("mysalon-dropdown-open");
 
-    const isOpen =
-        dropdown.classList.contains(
-            "mysalon-dropdown-open"
-        );
-
-
-    logoTrigger.setAttribute(
-        "aria-expanded",
-        isOpen ? "true" : "false"
-    );
+    logoTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
 
 }
-
 
 
 function closeDropdown() {
 
-    dropdown.classList.remove(
-        "mysalon-dropdown-open"
-    );
+    dropdown.classList.remove("mysalon-dropdown-open");
 
-
-    logoTrigger.setAttribute(
-        "aria-expanded",
-        "false"
-    );
+    logoTrigger.setAttribute("aria-expanded", "false");
 
 }
 
 
+logoTrigger.addEventListener("click", function (event) {
 
-logoTrigger.addEventListener(
-    "click",
-    function(event) {
+    event.stopPropagation();
+    toggleDropdown();
 
+});
+
+
+logoTrigger.addEventListener("keydown", function (event) {
+
+    if (event.key === "Enter" || event.key === " ") {
+
+        event.preventDefault();
         event.stopPropagation();
-
         toggleDropdown();
 
     }
-);
+
+});
 
 
+dropdown.addEventListener("click", function (event) {
 
-logoTrigger.addEventListener(
-    "keydown",
-    function(event) {
+    event.stopPropagation();
 
-        if (
-            event.key === "Enter" ||
-            event.key === " "
-        ) {
-
-            event.preventDefault();
-
-            event.stopPropagation();
-
-            toggleDropdown();
-
-        }
-
-    }
-);
+});
 
 
+document.addEventListener("click", function () {
 
-dropdown.addEventListener(
-    "click",
-    function(event) {
+    closeDropdown();
 
-        event.stopPropagation();
-
-    }
-);
+});
 
 
+document.addEventListener("keydown", function (event) {
 
-document.addEventListener(
-    "click",
-    function() {
+    if (event.key === "Escape") {
 
         closeDropdown();
 
     }
-);
 
-
-
-document.addEventListener(
-    "keydown",
-    function(event) {
-
-        if (event.key === "Escape") {
-
-            closeDropdown();
-
-        }
-
-    }
-);
-
+});
 
 </script>
 
