@@ -36,28 +36,15 @@ $stmt = $conn->prepare(
      LIMIT 1"
 );
 
-
-$stmt->bind_param(
-    "is",
-    $staff_id,
-    $today
-);
-
-
+$stmt->bind_param("is", $staff_id, $today);
 $stmt->execute();
 
 $todayResult = $stmt->get_result();
-
 $todayAttendance = null;
 
-
 if ($todayResult->num_rows === 1) {
-
-    $todayAttendance =
-        $todayResult->fetch_assoc();
-
+    $todayAttendance = $todayResult->fetch_assoc();
 }
-
 
 $stmt->close();
 
@@ -68,8 +55,7 @@ $stmt->close();
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $action =
-        $_POST["action"] ?? "";
+    $action = $_POST["action"] ?? "";
 
 
     // ======================================
@@ -78,14 +64,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if ($action === "check_in") {
 
-
-        // BELUM CHECK IN HARI INI
-
         if (!$todayAttendance) {
 
-            $current_time =
-                date("H:i:s");
-
+            $current_time = date("H:i:s");
 
             $stmt = $conn->prepare(
                 "INSERT INTO attendance
@@ -97,24 +78,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 VALUES (?, ?, ?)"
             );
 
-
-            $stmt->bind_param(
-                "iss",
-                $staff_id,
-                $today,
-                $current_time
-            );
-
-
+            $stmt->bind_param("iss", $staff_id, $today, $current_time);
             $stmt->execute();
-
             $stmt->close();
 
-
-            header(
-                "Location: staff_attendance.php?checkin=1"
-            );
-
+            header("Location: staff_attendance.php?checkin=1");
             exit();
 
         }
@@ -130,20 +98,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if (
             $todayAttendance &&
-            empty(
-                $todayAttendance["check_out"]
-            )
+            empty($todayAttendance["check_out"])
         ) {
 
-            $current_time =
-                date("H:i:s");
-
-
-            $attendance_id =
-                $todayAttendance[
-                    "attendance_id"
-                ];
-
+            $current_time = date("H:i:s");
+            $attendance_id = $todayAttendance["attendance_id"];
 
             $stmt = $conn->prepare(
                 "UPDATE attendance
@@ -152,24 +111,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                  AND staff_id = ?"
             );
 
-
-            $stmt->bind_param(
-                "sii",
-                $current_time,
-                $attendance_id,
-                $staff_id
-            );
-
-
+            $stmt->bind_param("sii", $current_time, $attendance_id, $staff_id);
             $stmt->execute();
-
             $stmt->close();
 
-
-            header(
-                "Location: staff_attendance.php?checkout=1"
-            );
-
+            header("Location: staff_attendance.php?checkout=1");
             exit();
 
         }
@@ -191,30 +137,15 @@ $stmt = $conn->prepare(
      LIMIT 1"
 );
 
-
-$stmt->bind_param(
-    "is",
-    $staff_id,
-    $today
-);
-
-
+$stmt->bind_param("is", $staff_id, $today);
 $stmt->execute();
 
-$todayResult =
-    $stmt->get_result();
-
-
+$todayResult = $stmt->get_result();
 $todayAttendance = null;
 
-
 if ($todayResult->num_rows === 1) {
-
-    $todayAttendance =
-        $todayResult->fetch_assoc();
-
+    $todayAttendance = $todayResult->fetch_assoc();
 }
-
 
 $stmt->close();
 
@@ -236,17 +167,10 @@ $stmt = $conn->prepare(
      ORDER BY attendance_date DESC"
 );
 
-
-$stmt->bind_param(
-    "i",
-    $staff_id
-);
-
-
+$stmt->bind_param("i", $staff_id);
 $stmt->execute();
 
-$history =
-    $stmt->get_result();
+$history = $stmt->get_result();
 
 ?>
 
@@ -267,10 +191,95 @@ $history =
         Staff Attendance - MySalon
     </title>
 
+    <!-- FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
     <link
         rel="stylesheet"
-        href="MySalon(CSS).css"
+        href="MySalon(CSS).css?v=2"
     >
+
+    <!-- Same page styles as staff_dashboard.php so every staff page matches -->
+    <style>
+
+        .section-title p {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .notice {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--cream);
+            background: rgba(35, 58, 52, 0.88);
+            border: 1px solid var(--line-dark);
+            border-left: 4px solid var(--sage);
+            border-radius: 6px;
+            padding: 14px 18px;
+            margin-bottom: 25px;
+            text-align: center;
+            width: 100%;
+            backdrop-filter: blur(6px);
+        }
+
+        .notice.notice-error {
+            color: #e8a3a3;
+            border-left-color: var(--danger);
+        }
+
+        .booking-card {
+            margin-bottom: 24px;
+        }
+
+        .booking-card h3 {
+            font-size: 24px;
+        }
+
+        .booking-card p {
+            font-size: 15.5px;
+        }
+
+        .booking-card p strong {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-right: 8px;
+        }
+
+        .booking-card select {
+            font-size: 15px;
+            padding: 14px 16px;
+        }
+
+        .booking-card select:focus {
+            box-shadow: 0 0 0 3px rgba(191, 122, 74, 0.25);
+        }
+
+        .booking-card form .button {
+            margin-top: 4px;
+        }
+
+        .booking-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .booking-actions .button {
+            padding: 12px 24px;
+            font-size: 12.5px;
+        }
+
+    </style>
 
 </head>
 
@@ -343,11 +352,7 @@ $history =
 
                 Hi,
 
-                <?php
-                echo htmlspecialchars(
-                    $_SESSION["name"]
-                );
-                ?>
+                <?php echo htmlspecialchars($_SESSION["name"]); ?>
 
             </div>
 
@@ -375,11 +380,7 @@ $history =
 
                 Hi,
 
-                <?php
-                echo htmlspecialchars(
-                    $_SESSION["name"]
-                );
-                ?>
+                <?php echo htmlspecialchars($_SESSION["name"]); ?>
 
             </span>
 
@@ -426,34 +427,19 @@ $history =
          SUCCESS MESSAGES
     ======================================= -->
 
-    <?php if (
-        isset($_GET["checkin"])
-    ): ?>
+    <?php if (isset($_GET["checkin"])): ?>
 
-        <p style="
-            text-align:center;
-            margin-bottom:25px;
-        ">
-
+        <p class="notice" style="margin-top:30px;">
             Check-in recorded successfully!
-
         </p>
 
     <?php endif; ?>
 
 
+    <?php if (isset($_GET["checkout"])): ?>
 
-    <?php if (
-        isset($_GET["checkout"])
-    ): ?>
-
-        <p style="
-            text-align:center;
-            margin-bottom:25px;
-        ">
-
+        <p class="notice" style="margin-top:30px;">
             Check-out recorded successfully!
-
         </p>
 
     <?php endif; ?>
@@ -464,7 +450,7 @@ $history =
          TODAY ATTENDANCE CARD
     ======================================= -->
 
-    <div class="booking-details">
+    <div class="booking-details" style="margin-top:30px;">
 
 
         <div class="booking-card">
@@ -475,56 +461,24 @@ $history =
             </h3>
 
 
-
             <!-- DATE -->
 
             <p>
-
-                <strong>
-                    Date:
-                </strong>
-
-                <?php
-
-                echo date(
-                    "d M Y",
-                    strtotime($today)
-                );
-
-                ?>
-
+                <strong>Date:</strong>
+                <?php echo date("d M Y", strtotime($today)); ?>
             </p>
-
 
 
             <!-- CHECK IN -->
 
             <p>
-
-                <strong>
-                    Check In:
-                </strong>
-
+                <strong>Check In:</strong>
 
                 <?php
 
-                if (
-                    $todayAttendance &&
-                    !empty(
-                        $todayAttendance[
-                            "check_in"
-                        ]
-                    )
-                ) {
+                if ($todayAttendance && !empty($todayAttendance["check_in"])) {
 
-                    echo date(
-                        "h:i A",
-                        strtotime(
-                            $todayAttendance[
-                                "check_in"
-                            ]
-                        )
-                    );
+                    echo date("h:i A", strtotime($todayAttendance["check_in"]));
 
                 } else {
 
@@ -533,39 +487,19 @@ $history =
                 }
 
                 ?>
-
             </p>
-
 
 
             <!-- CHECK OUT -->
 
             <p>
-
-                <strong>
-                    Check Out:
-                </strong>
-
+                <strong>Check Out:</strong>
 
                 <?php
 
-                if (
-                    $todayAttendance &&
-                    !empty(
-                        $todayAttendance[
-                            "check_out"
-                        ]
-                    )
-                ) {
+                if ($todayAttendance && !empty($todayAttendance["check_out"])) {
 
-                    echo date(
-                        "h:i A",
-                        strtotime(
-                            $todayAttendance[
-                                "check_out"
-                            ]
-                        )
-                    );
+                    echo date("h:i A", strtotime($todayAttendance["check_out"]));
 
                 } else {
 
@@ -574,89 +508,55 @@ $history =
                 }
 
                 ?>
-
             </p>
 
 
+            <!-- BELUM CHECK IN -->
 
-            <!-- ==================================
-                 BELUM CHECK IN
-            =================================== -->
-
-            <?php if (
-                !$todayAttendance
-            ): ?>
-
+            <?php if (!$todayAttendance): ?>
 
                 <form
                     method="POST"
                     action="staff_attendance.php"
+                    style="margin-top:20px;"
                 >
 
-                    <input
-                        type="hidden"
-                        name="action"
-                        value="check_in"
-                    >
+                    <input type="hidden" name="action" value="check_in">
 
-                    <button
-                        type="submit"
-                        class="button"
-                    >
+                    <button type="submit" class="button">
                         Check In
                     </button>
 
                 </form>
 
 
+            <!-- SUDAH CHECK IN, BELUM CHECK OUT -->
 
-            <!-- ==================================
-                 SUDAH CHECK IN,
-                 BELUM CHECK OUT
-            =================================== -->
-
-            <?php elseif (
-                empty(
-                    $todayAttendance[
-                        "check_out"
-                    ]
-                )
-            ): ?>
-
+            <?php elseif (empty($todayAttendance["check_out"])): ?>
 
                 <form
                     method="POST"
                     action="staff_attendance.php"
+                    style="margin-top:20px;"
                 >
 
-                    <input
-                        type="hidden"
-                        name="action"
-                        value="check_out"
-                    >
+                    <input type="hidden" name="action" value="check_out">
 
-                    <button
-                        type="submit"
-                        class="button"
-                    >
+                    <button type="submit" class="button">
                         Check Out
                     </button>
 
                 </form>
 
 
-
-            <!-- ==================================
-                 SUDAH SELESAI
-            =================================== -->
+            <!-- SUDAH SELESAI -->
 
             <?php else: ?>
 
-
-                <p>
+                <p style="margin-top:20px;">
+                    <strong>Status:</strong>
                     Attendance completed for today.
                 </p>
-
 
             <?php endif; ?>
 
@@ -674,7 +574,7 @@ $history =
 
     <div
         class="section-title"
-        style="margin-top:60px;"
+        style="margin-top:70px;"
     >
 
         <h2>
@@ -688,69 +588,33 @@ $history =
     </div>
 
 
-
-    <div class="booking-details">
-
-
-        <?php if (
-            $history->num_rows > 0
-        ): ?>
+    <div class="booking-details" style="margin-top:30px;">
 
 
-            <?php while (
-                $attendance =
-                $history->fetch_assoc()
-            ): ?>
+        <?php if ($history->num_rows > 0): ?>
+
+
+            <?php while ($attendance = $history->fetch_assoc()): ?>
 
 
                 <div class="booking-card">
 
 
                     <h3>
-
-                        <?php
-
-                        echo date(
-                            "d M Y",
-                            strtotime(
-                                $attendance[
-                                    "attendance_date"
-                                ]
-                            )
-                        );
-
-                        ?>
-
+                        <?php echo date("d M Y", strtotime($attendance["attendance_date"])); ?>
                     </h3>
-
 
 
                     <!-- HISTORY CHECK IN -->
 
                     <p>
-
-                        <strong>
-                            Check In:
-                        </strong>
+                        <strong>Check In:</strong>
 
                         <?php
 
-                        if (
-                            !empty(
-                                $attendance[
-                                    "check_in"
-                                ]
-                            )
-                        ) {
+                        if (!empty($attendance["check_in"])) {
 
-                            echo date(
-                                "h:i A",
-                                strtotime(
-                                    $attendance[
-                                        "check_in"
-                                    ]
-                                )
-                            );
+                            echo date("h:i A", strtotime($attendance["check_in"]));
 
                         } else {
 
@@ -759,37 +623,19 @@ $history =
                         }
 
                         ?>
-
                     </p>
-
 
 
                     <!-- HISTORY CHECK OUT -->
 
                     <p>
-
-                        <strong>
-                            Check Out:
-                        </strong>
+                        <strong>Check Out:</strong>
 
                         <?php
 
-                        if (
-                            !empty(
-                                $attendance[
-                                    "check_out"
-                                ]
-                            )
-                        ) {
+                        if (!empty($attendance["check_out"])) {
 
-                            echo date(
-                                "h:i A",
-                                strtotime(
-                                    $attendance[
-                                        "check_out"
-                                    ]
-                                )
-                            );
+                            echo date("h:i A", strtotime($attendance["check_out"]));
 
                         } else {
 
@@ -798,7 +644,6 @@ $history =
                         }
 
                         ?>
-
                     </p>
 
 
@@ -811,13 +656,8 @@ $history =
         <?php else: ?>
 
 
-            <p style="
-                text-align:center;
-                width:100%;
-            ">
-
+            <p class="notice">
                 No attendance records yet.
-
             </p>
 
 
@@ -852,127 +692,74 @@ $history =
 
 <script>
 
-
-const logoTrigger =
-    document.getElementById(
-        "mysalonLogoTrigger"
-    );
-
-
-const dropdown =
-    document.getElementById(
-        "mysalonDropdown"
-    );
-
+const logoTrigger = document.getElementById("mysalonLogoTrigger");
+const dropdown = document.getElementById("mysalonDropdown");
 
 
 function toggleDropdown() {
 
-    dropdown.classList.toggle(
-        "mysalon-dropdown-open"
-    );
+    dropdown.classList.toggle("mysalon-dropdown-open");
 
+    const isOpen = dropdown.classList.contains("mysalon-dropdown-open");
 
-    const isOpen =
-        dropdown.classList.contains(
-            "mysalon-dropdown-open"
-        );
-
-
-    logoTrigger.setAttribute(
-        "aria-expanded",
-        isOpen ? "true" : "false"
-    );
+    logoTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
 
 }
-
 
 
 function closeDropdown() {
 
-    dropdown.classList.remove(
-        "mysalon-dropdown-open"
-    );
+    dropdown.classList.remove("mysalon-dropdown-open");
 
-
-    logoTrigger.setAttribute(
-        "aria-expanded",
-        "false"
-    );
+    logoTrigger.setAttribute("aria-expanded", "false");
 
 }
 
 
+logoTrigger.addEventListener("click", function (event) {
 
-logoTrigger.addEventListener(
-    "click",
-    function(event) {
+    event.stopPropagation();
+    toggleDropdown();
 
+});
+
+
+logoTrigger.addEventListener("keydown", function (event) {
+
+    if (event.key === "Enter" || event.key === " ") {
+
+        event.preventDefault();
         event.stopPropagation();
-
         toggleDropdown();
 
     }
-);
+
+});
 
 
+dropdown.addEventListener("click", function (event) {
 
-logoTrigger.addEventListener(
-    "keydown",
-    function(event) {
+    event.stopPropagation();
 
-        if (
-            event.key === "Enter" ||
-            event.key === " "
-        ) {
-
-            event.preventDefault();
-            event.stopPropagation();
-
-            toggleDropdown();
-
-        }
-
-    }
-);
+});
 
 
+document.addEventListener("click", function () {
 
-dropdown.addEventListener(
-    "click",
-    function(event) {
+    closeDropdown();
 
-        event.stopPropagation();
-
-    }
-);
+});
 
 
+document.addEventListener("keydown", function (event) {
 
-document.addEventListener(
-    "click",
-    function() {
+    if (event.key === "Escape") {
 
         closeDropdown();
 
     }
-);
 
-
-
-document.addEventListener(
-    "keydown",
-    function(event) {
-
-        if (event.key === "Escape") {
-
-            closeDropdown();
-
-        }
-
-    }
-);
-
+});
 
 </script>
 
