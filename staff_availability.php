@@ -21,11 +21,36 @@ if (
 
 
 $staff_id = $_SESSION["user_id"];
-$message = "";
+$today = date("Y-m-d");
 
 
 // ==========================================
-// PROCESS FORM
+// CHECK ATTENDANCE HARI INI
+// ==========================================
+
+$stmt = $conn->prepare(
+    "SELECT *
+     FROM attendance
+     WHERE staff_id = ?
+     AND attendance_date = ?
+     LIMIT 1"
+);
+
+$stmt->bind_param("is", $staff_id, $today);
+$stmt->execute();
+
+$todayResult = $stmt->get_result();
+$todayAttendance = null;
+
+if ($todayResult->num_rows === 1) {
+    $todayAttendance = $todayResult->fetch_assoc();
+}
+
+$stmt->close();
+
+
+// ==========================================
+// CHECK IN / CHECK OUT
 // ==========================================
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -34,92 +59,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
     // ======================================
-    // ADD AVAILABILITY
+    // CHECK IN
     // ======================================
 
-    if ($action === "add") {
+    if ($action === "check_in") {
 
-        $available_date =
-            $_POST["available_date"] ?? "";
+        if (!$todayAttendance) {
 
-        $start_time =
-            $_POST["start_time"] ?? "";
-
-        $end_time =
-            $_POST["end_time"] ?? "";
-
-
-        if (
-            empty($available_date) ||
-            empty($start_time) ||
-            empty($end_time)
-        ) {
-
-            $message =
-                "Please complete all availability information.";
-
-        } elseif (
-            $available_date < date("Y-m-d")
-        ) {
-
-            $message =
-                "Please select today or a future date.";
-
-        } elseif (
-            $start_time >= $end_time
-        ) {
-
-            $message =
-                "End time must be later than start time.";
-
-        } else {
-
-
-            // ==================================
-            // INSERT AVAILABILITY
-            // ==================================
+            $current_time = date("H:i:s");
 
             $stmt = $conn->prepare(
-                "INSERT INTO staff_availability
+                "INSERT INTO attendance
                 (
                     staff_id,
-                    available_date,
-                    start_time,
-                    end_time,
-                    status
+                    attendance_date,
+                    check_in
                 )
-                VALUES (?, ?, ?, ?, 'available')"
+                VALUES (?, ?, ?)"
             );
 
-
-            $stmt->bind_param(
-                "isss",
-                $staff_id,
-                $available_date,
-                $start_time,
-                $end_time
-            );
-
-
-            if ($stmt->execute()) {
-
-                $stmt->close();
-
-                header(
-                    "Location: staff_availability.php?added=1"
-                );
-
-                exit();
-
-            } else {
-
-                $message =
-                    "Unable to save availability.";
-
-            }
-
-
+            $stmt->bind_param("iss", $staff_id, $today, $current_time);
+            $stmt->execute();
             $stmt->close();
+
+            header("Location: staff_attendance.php?checkin=1");
+            exit();
 
         }
 
@@ -127,175 +91,32 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
     // ======================================
-    // UPDATE AVAILABILITY
+    // CHECK OUT
     // ======================================
 
-    elseif ($action === "update") {
-
-        $availability_id =
-            $_POST["availability_id"] ?? "";
-
-        $available_date =
-            $_POST["available_date"] ?? "";
-
-        $start_time =
-            $_POST["start_time"] ?? "";
-
-        $end_time =
-            $_POST["end_time"] ?? "";
-
-        $status =
-            $_POST["status"] ?? "";
-
-
-        $allowed_status = [
-            "available",
-            "unavailable"
-        ];
-
+    if ($action === "check_out") {
 
         if (
-            !is_numeric($availability_id) ||
-            empty($available_date) ||
-            empty($start_time) ||
-            empty($end_time) ||
-            !in_array(
-                $status,
-                $allowed_status,
-                true
-            )
+            $todayAttendance &&
+            empty($todayAttendance["check_out"])
         ) {
 
-            $message =
-                "Please complete all availability information.";
-
-        } elseif (
-            $available_date < date("Y-m-d")
-        ) {
-
-            $message =
-                "Please select today or a future date.";
-
-        } elseif (
-            $start_time >= $end_time
-        ) {
-
-            $message =
-                "End time must be later than start time.";
-
-        } else {
-
-
-            // ==================================
-            // UPDATE HANYA MILIK STAFF SENDIRI
-            // ==================================
+            $current_time = date("H:i:s");
+            $attendance_id = $todayAttendance["attendance_id"];
 
             $stmt = $conn->prepare(
-                "UPDATE staff_availability
-
-                 SET
-                    available_date = ?,
-                    start_time = ?,
-                    end_time = ?,
-                    status = ?
-
-                 WHERE availability_id = ?
+                "UPDATE attendance
+                 SET check_out = ?
+                 WHERE attendance_id = ?
                  AND staff_id = ?"
             );
 
-
-            $stmt->bind_param(
-                "ssssii",
-                $available_date,
-                $start_time,
-                $end_time,
-                $status,
-                $availability_id,
-                $staff_id
-            );
-
-
-            if ($stmt->execute()) {
-
-                $stmt->close();
-
-                header(
-                    "Location: staff_availability.php?updated=1"
-                );
-
-                exit();
-
-            } else {
-
-                $message =
-                    "Unable to update availability.";
-
-            }
-
-
+            $stmt->bind_param("sii", $current_time, $attendance_id, $staff_id);
+            $stmt->execute();
             $stmt->close();
 
-        }
-
-    }
-
-
-    // ======================================
-    // DELETE AVAILABILITY
-    // ======================================
-
-    elseif ($action === "delete") {
-
-        $availability_id =
-            $_POST["availability_id"] ?? "";
-
-
-        if (!is_numeric($availability_id)) {
-
-            $message =
-                "Invalid availability.";
-
-        } else {
-
-
-            // ==================================
-            // DELETE HANYA MILIK STAFF SENDIRI
-            // ==================================
-
-            $stmt = $conn->prepare(
-                "DELETE FROM staff_availability
-
-                 WHERE availability_id = ?
-                 AND staff_id = ?"
-            );
-
-
-            $stmt->bind_param(
-                "ii",
-                $availability_id,
-                $staff_id
-            );
-
-
-            if ($stmt->execute()) {
-
-                $stmt->close();
-
-                header(
-                    "Location: staff_availability.php?deleted=1"
-                );
-
-                exit();
-
-            } else {
-
-                $message =
-                    "Unable to delete availability.";
-
-            }
-
-
-            $stmt->close();
+            header("Location: staff_attendance.php?checkout=1");
+            exit();
 
         }
 
@@ -305,36 +126,51 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
 // ==========================================
-// AMBIL AVAILABILITY STAFF
+// AMBIL SEMULA ATTENDANCE HARI INI
+// ==========================================
+
+$stmt = $conn->prepare(
+    "SELECT *
+     FROM attendance
+     WHERE staff_id = ?
+     AND attendance_date = ?
+     LIMIT 1"
+);
+
+$stmt->bind_param("is", $staff_id, $today);
+$stmt->execute();
+
+$todayResult = $stmt->get_result();
+$todayAttendance = null;
+
+if ($todayResult->num_rows === 1) {
+    $todayAttendance = $todayResult->fetch_assoc();
+}
+
+$stmt->close();
+
+
+// ==========================================
+// ATTENDANCE HISTORY
 // ==========================================
 
 $stmt = $conn->prepare(
     "SELECT
-        availability_id,
-        available_date,
-        start_time,
-        end_time,
-        status
+        attendance_date,
+        check_in,
+        check_out
 
-     FROM staff_availability
+     FROM attendance
 
      WHERE staff_id = ?
 
-     ORDER BY
-        available_date ASC,
-        start_time ASC"
+     ORDER BY attendance_date DESC"
 );
 
-
-$stmt->bind_param(
-    "i",
-    $staff_id
-);
-
-
+$stmt->bind_param("i", $staff_id);
 $stmt->execute();
 
-$result = $stmt->get_result();
+$history = $stmt->get_result();
 
 ?>
 
@@ -352,13 +188,98 @@ $result = $stmt->get_result();
     >
 
     <title>
-        Staff Availability - MySalon
+        Staff Attendance - MySalon
     </title>
+
+    <!-- FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet"
+    >
 
     <link
         rel="stylesheet"
-        href="MySalon(CSS).css"
+        href="MySalon(CSS).css?v=2"
     >
+
+    <!-- Same page styles as staff_dashboard.php so every staff page matches -->
+    <style>
+
+        .section-title p {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .notice {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--cream);
+            background: rgba(35, 58, 52, 0.88);
+            border: 1px solid var(--line-dark);
+            border-left: 4px solid var(--sage);
+            border-radius: 6px;
+            padding: 14px 18px;
+            margin-bottom: 25px;
+            text-align: center;
+            width: 100%;
+            backdrop-filter: blur(6px);
+        }
+
+        .notice.notice-error {
+            color: #e8a3a3;
+            border-left-color: var(--danger);
+        }
+
+        .booking-card {
+            margin-bottom: 24px;
+        }
+
+        .booking-card h3 {
+            font-size: 24px;
+        }
+
+        .booking-card p {
+            font-size: 15.5px;
+        }
+
+        .booking-card p strong {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-right: 8px;
+        }
+
+        .booking-card select {
+            font-size: 15px;
+            padding: 14px 16px;
+        }
+
+        .booking-card select:focus {
+            box-shadow: 0 0 0 3px rgba(191, 122, 74, 0.25);
+        }
+
+        .booking-card form .button {
+            margin-top: 4px;
+        }
+
+        .booking-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .booking-actions .button {
+            padding: 12px 24px;
+            font-size: 12.5px;
+        }
+
+    </style>
 
 </head>
 
@@ -431,11 +352,7 @@ $result = $stmt->get_result();
 
                 Hi,
 
-                <?php
-                echo htmlspecialchars(
-                    $_SESSION["name"]
-                );
-                ?>
+                <?php echo htmlspecialchars($_SESSION["name"]); ?>
 
             </div>
 
@@ -463,11 +380,7 @@ $result = $stmt->get_result();
 
                 Hi,
 
-                <?php
-                echo htmlspecialchars(
-                    $_SESSION["name"]
-                );
-                ?>
+                <?php echo htmlspecialchars($_SESSION["name"]); ?>
 
             </span>
 
@@ -490,17 +403,23 @@ $result = $stmt->get_result();
 
 
 <!-- ==========================================
-     AVAILABILITY SECTION
+     ATTENDANCE
 =========================================== -->
 
 <section>
 
 
-<div class="section-title"> 
-  <h2 style="font-size: 60x; font-weight: bold;"> Staff Availability </h2> 
-  <p style="font-size: 30px; font-weight: bold;"> Set and manage your available working hours </p> 
-</div>
+    <div class="section-title">
 
+        <h2>
+            Staff Attendance
+        </h2>
+
+        <p>
+            Record your daily check-in and check-out
+        </p>
+
+    </div>
 
 
 
@@ -508,37 +427,19 @@ $result = $stmt->get_result();
          SUCCESS MESSAGES
     ======================================= -->
 
-    <?php if (isset($_GET["added"])): ?>
+    <?php if (isset($_GET["checkin"])): ?>
 
-        <p style="
-            text-align:center;
-            margin-bottom:25px;
-        ">
-            Availability added successfully!
+        <p class="notice" style="margin-top:30px;">
+            Check-in recorded successfully!
         </p>
 
     <?php endif; ?>
 
 
-    <?php if (isset($_GET["updated"])): ?>
+    <?php if (isset($_GET["checkout"])): ?>
 
-        <p style="
-            text-align:center;
-            margin-bottom:25px;
-        ">
-            Availability updated successfully!
-        </p>
-
-    <?php endif; ?>
-
-
-    <?php if (isset($_GET["deleted"])): ?>
-
-        <p style="
-            text-align:center;
-            margin-bottom:25px;
-        ">
-            Availability deleted successfully!
+        <p class="notice" style="margin-top:30px;">
+            Check-out recorded successfully!
         </p>
 
     <?php endif; ?>
@@ -546,119 +447,121 @@ $result = $stmt->get_result();
 
 
     <!-- ======================================
-         ERROR MESSAGE
+         TODAY ATTENDANCE CARD
     ======================================= -->
 
-    <?php if (!empty($message)): ?>
-
-        <p style="
-            text-align:center;
-            margin-bottom:25px;
-            color:#9c4444;
-        ">
-
-            <?php
-            echo htmlspecialchars($message);
-            ?>
-
-        </p>
-
-    <?php endif; ?>
+    <div class="booking-details" style="margin-top:30px;">
 
 
-
-    <!-- ======================================
-         ADD AVAILABILITY
-    ======================================= -->
-
-    <div class="booking-form">
+        <div class="booking-card">
 
 
-        <h3 style="margin-bottom:25px;">
-            Add Availability
-        </h3>
-
-
-        <form
-            method="POST"
-            action="staff_availability.php"
-        >
-
-
-            <input
-                type="hidden"
-                name="action"
-                value="add"
-            >
+            <h3>
+                Today's Attendance
+            </h3>
 
 
             <!-- DATE -->
 
-            <div class="form-group">
+            <p>
+                <strong>Date:</strong>
+                <?php echo date("d M Y", strtotime($today)); ?>
+            </p>
 
-                <label for="available_date">
-                    Available Date
-                </label>
 
-                <input
-                    type="date"
-                    id="available_date"
-                    name="available_date"
-                    min="<?php echo date("Y-m-d"); ?>"
-                    required
+            <!-- CHECK IN -->
+
+            <p>
+                <strong>Check In:</strong>
+
+                <?php
+
+                if ($todayAttendance && !empty($todayAttendance["check_in"])) {
+
+                    echo date("h:i A", strtotime($todayAttendance["check_in"]));
+
+                } else {
+
+                    echo "Not checked in";
+
+                }
+
+                ?>
+            </p>
+
+
+            <!-- CHECK OUT -->
+
+            <p>
+                <strong>Check Out:</strong>
+
+                <?php
+
+                if ($todayAttendance && !empty($todayAttendance["check_out"])) {
+
+                    echo date("h:i A", strtotime($todayAttendance["check_out"]));
+
+                } else {
+
+                    echo "Not checked out";
+
+                }
+
+                ?>
+            </p>
+
+
+            <!-- BELUM CHECK IN -->
+
+            <?php if (!$todayAttendance): ?>
+
+                <form
+                    method="POST"
+                    action="staff_attendance.php"
+                    style="margin-top:20px;"
                 >
 
-            </div>
+                    <input type="hidden" name="action" value="check_in">
+
+                    <button type="submit" class="button">
+                        Check In
+                    </button>
+
+                </form>
 
 
+            <!-- SUDAH CHECK IN, BELUM CHECK OUT -->
 
-            <!-- START TIME -->
+            <?php elseif (empty($todayAttendance["check_out"])): ?>
 
-            <div class="form-group">
-
-                <label for="start_time">
-                    Start Time
-                </label>
-
-                <input
-                    type="time"
-                    id="start_time"
-                    name="start_time"
-                    required
+                <form
+                    method="POST"
+                    action="staff_attendance.php"
+                    style="margin-top:20px;"
                 >
 
-            </div>
+                    <input type="hidden" name="action" value="check_out">
+
+                    <button type="submit" class="button">
+                        Check Out
+                    </button>
+
+                </form>
 
 
+            <!-- SUDAH SELESAI -->
 
-            <!-- END TIME -->
+            <?php else: ?>
 
-            <div class="form-group">
+                <p style="margin-top:20px;">
+                    <strong>Status:</strong>
+                    Attendance completed for today.
+                </p>
 
-                <label for="end_time">
-                    End Time
-                </label>
-
-                <input
-                    type="time"
-                    id="end_time"
-                    name="end_time"
-                    required
-                >
-
-            </div>
+            <?php endif; ?>
 
 
-
-            <button
-                type="submit"
-                class="button confirm-button"
-            >
-                Add Availability
-            </button>
-
-
-        </form>
+        </div>
 
 
     </div>
@@ -666,251 +569,82 @@ $result = $stmt->get_result();
 
 
     <!-- ======================================
-         MY AVAILABILITY
+         ATTENDANCE HISTORY
     ======================================= -->
 
-   <div class="section-title" style="margin-top:60px;">
+    <div
+        class="section-title"
+        style="margin-top:70px;"
+    >
 
-    <h2 style="font-size: 60px; font-weight: bold;">
-        My Availability
-    </h2>
+        <h2>
+            Attendance History
+        </h2>
 
-    <p style="font-size: 30px; font-weight: bold;">
-        Update or remove your working schedule
-    </p>
+        <p>
+            Review your previous attendance records
+        </p>
 
-</div>
-
-
-
-
-    <div class="booking-details">
+    </div>
 
 
-        <?php if ($result->num_rows > 0): ?>
+    <div class="booking-details" style="margin-top:30px;">
 
 
-            <?php while (
-                $availability =
-                $result->fetch_assoc()
-            ): ?>
+        <?php if ($history->num_rows > 0): ?>
+
+
+            <?php while ($attendance = $history->fetch_assoc()): ?>
 
 
                 <div class="booking-card">
 
 
-                    <form
-                        method="POST"
-                        action="staff_availability.php"
-                    >
+                    <h3>
+                        <?php echo date("d M Y", strtotime($attendance["attendance_date"])); ?>
+                    </h3>
 
 
-                        <input
-                            type="hidden"
-                            name="action"
-                            value="update"
-                        >
+                    <!-- HISTORY CHECK IN -->
 
+                    <p>
+                        <strong>Check In:</strong>
 
-                        <input
-                            type="hidden"
-                            name="availability_id"
-                            value="<?php
-                            echo $availability["availability_id"];
-                            ?>"
-                        >
+                        <?php
 
+                        if (!empty($attendance["check_in"])) {
 
+                            echo date("h:i A", strtotime($attendance["check_in"]));
 
-                        <!-- DATE -->
+                        } else {
 
-                        <div class="form-group">
+                            echo "-";
 
-                            <label>
-                                Available Date
-                            </label>
+                        }
 
-                            <input
-                                type="date"
-                                name="available_date"
-                                min="<?php echo date("Y-m-d"); ?>"
-                                value="<?php
-                                echo htmlspecialchars(
-                                    $availability["available_date"]
-                                );
-                                ?>"
-                                required
-                            >
+                        ?>
+                    </p>
 
-                        </div>
 
+                    <!-- HISTORY CHECK OUT -->
 
+                    <p>
+                        <strong>Check Out:</strong>
 
-                        <!-- START TIME -->
+                        <?php
 
-                        <div class="form-group">
+                        if (!empty($attendance["check_out"])) {
 
-                            <label>
-                                Start Time
-                            </label>
+                            echo date("h:i A", strtotime($attendance["check_out"]));
 
-                            <input
-                                type="time"
-                                name="start_time"
-                                value="<?php
-                                echo htmlspecialchars(
-                                    substr(
-                                        $availability["start_time"],
-                                        0,
-                                        5
-                                    )
-                                );
-                                ?>"
-                                required
-                            >
+                        } else {
 
-                        </div>
+                            echo "-";
 
+                        }
 
-
-                        <!-- END TIME -->
-
-                        <div class="form-group">
-
-                            <label>
-                                End Time
-                            </label>
-
-                            <input
-                                type="time"
-                                name="end_time"
-                                value="<?php
-                                echo htmlspecialchars(
-                                    substr(
-                                        $availability["end_time"],
-                                        0,
-                                        5
-                                    )
-                                );
-                                ?>"
-                                required
-                            >
-
-                        </div>
-
-
-
-                        <!-- STATUS -->
-
-                        <div class="form-group">
-
-                            <label>
-                                Status
-                            </label>
-
-                            <select
-                                name="status"
-                                required
-                            >
-
-
-                                <option
-                                    value="available"
-
-                                    <?php
-
-                                    if (
-                                        $availability["status"]
-                                        === "available"
-                                    ) {
-
-                                        echo "selected";
-
-                                    }
-
-                                    ?>
-                                >
-                                    Available
-                                </option>
-
-
-                                <option
-                                    value="unavailable"
-
-                                    <?php
-
-                                    if (
-                                        $availability["status"]
-                                        === "unavailable"
-                                    ) {
-
-                                        echo "selected";
-
-                                    }
-
-                                    ?>
-                                >
-                                    Unavailable
-                                </option>
-
-
-                            </select>
-
-                        </div>
-
-
-
-                        <!-- UPDATE -->
-
-                        <button
-                            type="submit"
-                            class="button"
-                        >
-                            Save Changes
-                        </button>
-
-
-                    </form>
-
-
-
-                    <!-- DELETE -->
-
-                    <form
-                        method="POST"
-                        action="staff_availability.php"
-                        style="margin-top:10px;"
-                        onsubmit="return confirm(
-                            'Delete this availability?'
-                        );"
-                    >
-
-
-                        <input
-                            type="hidden"
-                            name="action"
-                            value="delete"
-                        >
-
-
-                        <input
-                            type="hidden"
-                            name="availability_id"
-                            value="<?php
-                            echo $availability["availability_id"];
-                            ?>"
-                        >
-
-
-                        <button
-                            type="submit"
-                            class="button delete-button"
-                        >
-                            Delete
-                        </button>
-
-
-                    </form>
+                        ?>
+                    </p>
 
 
                 </div>
@@ -922,13 +656,8 @@ $result = $stmt->get_result();
         <?php else: ?>
 
 
-            <p style="
-                text-align:center;
-                width:100%;
-            ">
-
-                No availability has been added yet.
-
+            <p class="notice">
+                No attendance records yet.
             </p>
 
 
@@ -963,127 +692,74 @@ $result = $stmt->get_result();
 
 <script>
 
-
-const logoTrigger =
-    document.getElementById(
-        "mysalonLogoTrigger"
-    );
-
-
-const dropdown =
-    document.getElementById(
-        "mysalonDropdown"
-    );
-
+const logoTrigger = document.getElementById("mysalonLogoTrigger");
+const dropdown = document.getElementById("mysalonDropdown");
 
 
 function toggleDropdown() {
 
-    dropdown.classList.toggle(
-        "mysalon-dropdown-open"
-    );
+    dropdown.classList.toggle("mysalon-dropdown-open");
 
+    const isOpen = dropdown.classList.contains("mysalon-dropdown-open");
 
-    const isOpen =
-        dropdown.classList.contains(
-            "mysalon-dropdown-open"
-        );
-
-
-    logoTrigger.setAttribute(
-        "aria-expanded",
-        isOpen ? "true" : "false"
-    );
+    logoTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
 
 }
-
 
 
 function closeDropdown() {
 
-    dropdown.classList.remove(
-        "mysalon-dropdown-open"
-    );
+    dropdown.classList.remove("mysalon-dropdown-open");
 
-
-    logoTrigger.setAttribute(
-        "aria-expanded",
-        "false"
-    );
+    logoTrigger.setAttribute("aria-expanded", "false");
 
 }
 
 
+logoTrigger.addEventListener("click", function (event) {
 
-logoTrigger.addEventListener(
-    "click",
-    function(event) {
+    event.stopPropagation();
+    toggleDropdown();
 
+});
+
+
+logoTrigger.addEventListener("keydown", function (event) {
+
+    if (event.key === "Enter" || event.key === " ") {
+
+        event.preventDefault();
         event.stopPropagation();
-
         toggleDropdown();
 
     }
-);
+
+});
 
 
+dropdown.addEventListener("click", function (event) {
 
-logoTrigger.addEventListener(
-    "keydown",
-    function(event) {
+    event.stopPropagation();
 
-        if (
-            event.key === "Enter" ||
-            event.key === " "
-        ) {
-
-            event.preventDefault();
-            event.stopPropagation();
-
-            toggleDropdown();
-
-        }
-
-    }
-);
+});
 
 
+document.addEventListener("click", function () {
 
-dropdown.addEventListener(
-    "click",
-    function(event) {
+    closeDropdown();
 
-        event.stopPropagation();
-
-    }
-);
+});
 
 
+document.addEventListener("keydown", function (event) {
 
-document.addEventListener(
-    "click",
-    function() {
+    if (event.key === "Escape") {
 
         closeDropdown();
 
     }
-);
 
-
-
-document.addEventListener(
-    "keydown",
-    function(event) {
-
-        if (event.key === "Escape") {
-
-            closeDropdown();
-
-        }
-
-    }
-);
-
+});
 
 </script>
 
