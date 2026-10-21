@@ -1,6 +1,13 @@
 /* =========================================================
    MYSALON MANAGEMENT SYSTEM
    COMPLETE STYLESHEET  (recovery.css + MySalon_CSS_PT2 merged)
+
+   CHANGES IN THIS VERSION
+   1. .section-title now sits on a gray-green translucent panel
+      with light text, so headings stay readable over the photo.
+   2. The "MATCHING BOXES" block was trapped inside the
+      prefers-reduced-motion media query. It is now a normal
+      section, and the media query is closed properly.
    ========================================================= */
 
 
@@ -446,18 +453,28 @@ section {
     background: transparent;
 }
 
+/* Heading panel: gray-green translucent box, same family as the
+   booking boxes, so the title stays readable on the photo. */
 .section-title {
+    width: fit-content;
     max-width: 640px;
     margin-bottom: 56px;
+    padding: 22px 30px;
+    background: rgba(35, 58, 52, 0.88);
+    border: 1px solid var(--line-dark);
+    border-radius: 4px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 12px 30px -15px rgba(28, 43, 39, 0.5);
 }
 
 .section-title h2 {
     font-size: clamp(28px, 3vw, 38px);
+    color: var(--cream);
 }
 
 .section-title p,
 .section-title p.sub {
-    color: #6b6259;
+    color: #dbe4df;
     margin-top: 10px;
     font-size: 15.5px;
 }
@@ -1140,20 +1157,12 @@ footer {
 }
 
 
-/* ================= REDUCED MOTION ================= */
-
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.001ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.001ms !important;
-    }
-   /* =========================================================
+/* =========================================================
    MATCHING BOXES
-   PASTE THIS AT THE VERY END OF MySalon(CSS).css
-   (below everything else, including the earlier additions)
    Makes the form box and the card boxes the same
-   gray-green transparent style.
+   gray-green transparent style. This block was previously
+   nested inside the reduced-motion media query, so it only
+   applied to users with that setting on. It is now global.
    ========================================================= */
 
 
@@ -1241,4 +1250,14 @@ footer {
     border-color: var(--danger);
     color: var(--cream);
 }
+
+
+/* ================= REDUCED MOTION ================= */
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
 }
