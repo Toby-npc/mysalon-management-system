@@ -18,6 +18,18 @@ $isCustomer =
 
 
 // ==========================================
+// PRICE FORMAT  (RM25, or RM25.50 if it has cents)
+// ==========================================
+
+function format_rm($amount)
+{
+    $decimals = ($amount == floor($amount)) ? 0 : 2;
+
+    return "RM" . number_format($amount, $decimals);
+}
+
+
+// ==========================================
 // FOLDER FOR SERVICE PICTURES
 // ==========================================
 
@@ -30,7 +42,7 @@ $image_folder = "asset/";
 // Each line = ONE service.
 //   "word in the service name" => "picture file"
 // The word can be any part of the service name
-// (not case sensitive). Pictures live in asset/
+// (not case sensitive). Pictures live in IMAGES/
 //
 // To add a new service picture, copy one line,
 // then change the word and the file name.
@@ -38,10 +50,10 @@ $image_folder = "asset/";
 
 $service_pictures = [
 
-    "haircut"    => "asset/haircut.jpg",      // 1. Haircut & styling
-    "colour"     => "asset/haircolor.jpg",    // 2. Hair colouring
-    "manicure"   => "asset/rebonding.jpg",    // 3. Manicure & pedicure
-    "facial"     => "asset/facialspa.jpg",    // 4. Facial & spa
+    "haircut"    => "haircut.jpg",      // 1. Haircut & styling
+    "colo"       => "haircolor.jpg",    // 2. Hair colouring
+    "manicure"   => "rebonding.jpg",    // 3. Manicure & pedicure
+    "facial"     => "facialspa.jpg",    // 4. Facial & spa
 
 ];
 
@@ -87,25 +99,6 @@ $services = $conn->query($sql);
         href="MySalon(CSS).css"
     >
 
-    <style>
-
-        /* Service picture */
-        .service-image {
-            width: 100%;
-            height: 200px;
-            margin-bottom: 18px;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .service-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-    </style>
 
 </head>
 
@@ -325,11 +318,7 @@ $services = $conn->query($sql);
 
                 }
 
-                $has_image = (
-                    $image_file !== ""
-                    &&
-                    file_exists($image_folder . $image_file)
-                );
+                $has_image = ($image_file !== "");
 
                 ?>
 
@@ -337,55 +326,16 @@ $services = $conn->query($sql);
                 <div class="service-card">
 
 
-                    <!-- PICTURE (emoji only if no picture) -->
+                    <!-- PICTURE -->
 
                     <?php if ($has_image): ?>
 
-                        <div class="service-image">
+                        <div class="service-icon">
 
                             <img
                                 src="<?php echo htmlspecialchars($image_folder . $image_file); ?>"
                                 alt="<?php echo htmlspecialchars($service["service_name"]); ?>"
-                                loading="lazy"
                             >
-
-                        </div>
-
-                    <?php else: ?>
-
-                        <div class="service-icon">
-
-                            <?php
-
-                            $name = strtolower($service["service_name"]);
-
-                            if (strpos($name, "color") !== false) {
-
-                                echo "🎨";
-
-                            } elseif (
-                                strpos($name, "manicure") !== false
-                                ||
-                                strpos($name, "pedicure") !== false
-                            ) {
-
-                                echo "💅";
-
-                            } elseif (
-                                strpos($name, "facial") !== false
-                                ||
-                                strpos($name, "spa") !== false
-                            ) {
-
-                                echo "💆‍♂️";
-
-                            } else {
-
-                                echo "💇‍♀️";
-
-                            }
-
-                            ?>
 
                         </div>
 
@@ -424,7 +374,7 @@ $services = $conn->query($sql);
 
                             <span style="text-decoration:line-through;">
 
-                                $<?php echo number_format($original_price, 2); ?>
+                                <?php echo format_rm($original_price); ?>
 
                             </span>
 
@@ -443,7 +393,7 @@ $services = $conn->query($sql);
 
                         <div class="price">
 
-                            $<?php echo number_format($final_price, 2); ?>
+                            <?php echo format_rm($final_price); ?>
 
                         </div>
 
@@ -453,7 +403,7 @@ $services = $conn->query($sql);
 
                         <div class="price">
 
-                            $<?php echo number_format($original_price, 2); ?>
+                            <?php echo format_rm($original_price); ?>
 
                         </div>
 
