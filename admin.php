@@ -398,7 +398,7 @@ $bookings =
         >
 
             <img
-                src="asset/image/images.jpg"
+                src="asset/Salon3.png"
                 alt="MySalon Logo"
             >
 
