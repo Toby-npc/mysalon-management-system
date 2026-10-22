@@ -18,6 +18,13 @@ $isCustomer =
 
 
 // ==========================================
+// FOLDER FOR SERVICE PICTURES
+// ==========================================
+
+$image_folder = "asset/";
+
+
+// ==========================================
 // GET AVAILABLE SERVICES
 // ==========================================
 
@@ -29,7 +36,8 @@ $sql = "
         price,
         status,
         discount_percent,
-        promotion_status
+        promotion_status,
+        image
     FROM services
     WHERE status = 'available'
     ORDER BY service_id ASC
@@ -57,6 +65,26 @@ $services = $conn->query($sql);
         rel="stylesheet"
         href="MySalon(CSS).css"
     >
+
+    <style>
+
+        /* Service picture */
+        .service-image {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 18px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .service-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+    </style>
 
 </head>
 
@@ -131,11 +159,7 @@ $services = $conn->query($sql);
 
                     Hi,
 
-                    <?php
-                    echo htmlspecialchars(
-                        $_SESSION["name"]
-                    );
-                    ?>
+                    <?php echo htmlspecialchars($_SESSION["name"]); ?>
 
                 </div>
 
@@ -173,11 +197,7 @@ $services = $conn->query($sql);
 
                     Hi,
 
-                    <?php
-                    echo htmlspecialchars(
-                        $_SESSION["name"]
-                    );
-                    ?>
+                    <?php echo htmlspecialchars($_SESSION["name"]); ?>
 
                 </span>
 
@@ -231,16 +251,10 @@ $services = $conn->query($sql);
     <div class="services">
 
 
-        <?php if (
-            $services &&
-            $services->num_rows > 0
-        ): ?>
+        <?php if ($services && $services->num_rows > 0): ?>
 
 
-            <?php while (
-                $service =
-                $services->fetch_assoc()
-            ): ?>
+            <?php while ($service = $services->fetch_assoc()): ?>
 
 
                 <?php
@@ -249,37 +263,39 @@ $services = $conn->query($sql);
                 // CALCULATE PROMOTION PRICE
                 // ==================================
 
-                $original_price =
-                    (float)$service["price"];
+                $original_price = (float)$service["price"];
 
-                $discount =
-                    (float)$service[
-                        "discount_percent"
-                    ];
+                $discount = (float)$service["discount_percent"];
 
-
-                $promotion_active =
-                    $service[
-                        "promotion_status"
-                    ] === "active"
+                $promotion_active = (
+                    $service["promotion_status"] === "active"
                     &&
-                    $discount > 0;
+                    $discount > 0
+                );
 
-
-                $final_price =
-                    $original_price;
-
+                $final_price = $original_price;
 
                 if ($promotion_active) {
 
                     $final_price =
                         $original_price -
-                        (
-                            $original_price *
-                            ($discount / 100)
-                        );
+                        ($original_price * ($discount / 100));
 
                 }
+
+
+                // ==================================
+                // SERVICE PICTURE
+                // (basename() stops path tricks)
+                // ==================================
+
+                $image_file = basename($service["image"] ?? "");
+
+                $has_image = (
+                    $image_file !== ""
+                    &&
+                    file_exists($image_folder . $image_file)
+                );
 
                 ?>
 
@@ -287,79 +303,66 @@ $services = $conn->query($sql);
                 <div class="service-card">
 
 
-                    <!-- ICON -->
+                    <!-- PICTURE (emoji only if no picture) -->
 
-                    <div class="service-icon">
+                    <?php if ($has_image): ?>
 
-                        <?php
+                        <div class="service-image">
 
-                        $name =
-                            strtolower(
-                                $service[
-                                    "service_name"
-                                ]
-                            );
+                            <img
+                                src="<?php echo htmlspecialchars($image_folder . $image_file); ?>"
+                                alt="<?php echo htmlspecialchars($service["service_name"]); ?>"
+                                loading="lazy"
+                            >
 
+                        </div>
 
-                        if (
-                            strpos(
-                                $name,
-                                "color"
-                            ) !== false
-                        ) {
+                    <?php else: ?>
 
-                            echo "🎨";
+                        <div class="service-icon">
 
-                        } elseif (
-                            strpos(
-                                $name,
-                                "manicure"
-                            ) !== false
-                            ||
-                            strpos(
-                                $name,
-                                "pedicure"
-                            ) !== false
-                        ) {
+                            <?php
 
-                            echo "💅";
+                            $name = strtolower($service["service_name"]);
 
-                        } elseif (
-                            strpos(
-                                $name,
-                                "facial"
-                            ) !== false
-                            ||
-                            strpos(
-                                $name,
-                                "spa"
-                            ) !== false
-                        ) {
+                            if (strpos($name, "color") !== false) {
 
-                            echo "💆‍♂️";
+                                echo "🎨";
 
-                        } else {
+                            } elseif (
+                                strpos($name, "manicure") !== false
+                                ||
+                                strpos($name, "pedicure") !== false
+                            ) {
 
-                            echo "💇‍♀️";
+                                echo "💅";
 
-                        }
+                            } elseif (
+                                strpos($name, "facial") !== false
+                                ||
+                                strpos($name, "spa") !== false
+                            ) {
 
-                        ?>
+                                echo "💆‍♂️";
 
-                    </div>
+                            } else {
+
+                                echo "💇‍♀️";
+
+                            }
+
+                            ?>
+
+                        </div>
+
+                    <?php endif; ?>
 
 
                     <!-- SERVICE NAME -->
 
                     <h3>
 
-                        <?php
-                        echo htmlspecialchars(
-                            $service[
-                                "service_name"
-                            ]
-                        );
-                        ?>
+                        <?php echo htmlspecialchars($service["service_name"]); ?>
 
                     </h3>
 
@@ -368,22 +371,14 @@ $services = $conn->query($sql);
 
                     <p>
 
-                        <?php
-                        echo htmlspecialchars(
-                            $service[
-                                "description"
-                            ] ?? ""
-                        );
-                        ?>
+                        <?php echo htmlspecialchars($service["description"] ?? ""); ?>
 
                     </p>
 
 
                     <!-- PROMOTION ACTIVE -->
 
-                    <?php if (
-                        $promotion_active
-                    ): ?>
+                    <?php if ($promotion_active): ?>
 
 
                         <p style="
@@ -393,16 +388,9 @@ $services = $conn->query($sql);
 
                             Original Price:
 
-                            <span style="
-                                text-decoration:line-through;
-                            ">
+                            <span style="text-decoration:line-through;">
 
-                                $<?php
-                                echo number_format(
-                                    $original_price,
-                                    2
-                                );
-                                ?>
+                                $<?php echo number_format($original_price, 2); ?>
 
                             </span>
 
@@ -414,24 +402,14 @@ $services = $conn->query($sql);
                             margin-bottom:5px;
                         ">
 
-                            <?php
-                            echo number_format(
-                                $discount,
-                                0
-                            );
-                            ?>% OFF
+                            <?php echo number_format($discount, 0); ?>% OFF
 
                         </p>
 
 
                         <div class="price">
 
-                            $<?php
-                            echo number_format(
-                                $final_price,
-                                2
-                            );
-                            ?>
+                            $<?php echo number_format($final_price, 2); ?>
 
                         </div>
 
@@ -441,12 +419,7 @@ $services = $conn->query($sql);
 
                         <div class="price">
 
-                            $<?php
-                            echo number_format(
-                                $original_price,
-                                2
-                            );
-                            ?>
+                            $<?php echo number_format($original_price, 2); ?>
 
                         </div>
 
@@ -457,9 +430,7 @@ $services = $conn->query($sql);
                     <!-- SELECT BUTTON -->
 
                     <a
-                        href="MySalon(BOOKING).php?service_id=<?php
-                        echo $service["service_id"];
-                        ?>"
+                        href="MySalon(BOOKING).php?service_id=<?php echo (int)$service["service_id"]; ?>"
                         class="button"
                     >
                         Select
@@ -515,34 +486,20 @@ $services = $conn->query($sql);
 
 <script>
 
-const logoTrigger =
-    document.getElementById(
-        "mysalonLogoTrigger"
-    );
-
-const dropdown =
-    document.getElementById(
-        "mysalonDropdown"
-    );
+const logoTrigger = document.getElementById("mysalonLogoTrigger");
+const dropdown = document.getElementById("mysalonDropdown");
 
 
 // OPEN / CLOSE DROPDOWN
 
 function toggleDropdown() {
 
-    dropdown.classList.toggle(
-        "mysalon-dropdown-open"
-    );
+    dropdown.classList.toggle("mysalon-dropdown-open");
 
-    const isOpen =
-        dropdown.classList.contains(
-            "mysalon-dropdown-open"
-        );
+    const isOpen = dropdown.classList.contains("mysalon-dropdown-open");
 
-    logoTrigger.setAttribute(
-        "aria-expanded",
-        isOpen ? "true" : "false"
-    );
+    logoTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+
 }
 
 
@@ -550,91 +507,67 @@ function toggleDropdown() {
 
 function closeDropdown() {
 
-    dropdown.classList.remove(
-        "mysalon-dropdown-open"
-    );
+    dropdown.classList.remove("mysalon-dropdown-open");
 
-    logoTrigger.setAttribute(
-        "aria-expanded",
-        "false"
-    );
+    logoTrigger.setAttribute("aria-expanded", "false");
+
 }
 
 
 // CLICK LOGO
 
-logoTrigger.addEventListener(
-    "click",
-    function(event) {
+logoTrigger.addEventListener("click", function (event) {
 
-        event.stopPropagation();
+    event.stopPropagation();
+    toggleDropdown();
 
-        toggleDropdown();
-
-    }
-);
+});
 
 
 // KEYBOARD SUPPORT
 
-logoTrigger.addEventListener(
-    "keydown",
-    function(event) {
+logoTrigger.addEventListener("keydown", function (event) {
 
-        if (
-            event.key === "Enter" ||
-            event.key === " "
-        ) {
+    if (event.key === "Enter" || event.key === " ") {
 
-            event.preventDefault();
-            event.stopPropagation();
-
-            toggleDropdown();
-
-        }
+        event.preventDefault();
+        event.stopPropagation();
+        toggleDropdown();
 
     }
-);
+
+});
 
 
 // DON'T CLOSE WHEN CLICKING INSIDE DROPDOWN
 
-dropdown.addEventListener(
-    "click",
-    function(event) {
+dropdown.addEventListener("click", function (event) {
 
-        event.stopPropagation();
+    event.stopPropagation();
 
-    }
-);
+});
 
 
 // CLICK OUTSIDE
 
-document.addEventListener(
-    "click",
-    function() {
+document.addEventListener("click", function () {
 
-        closeDropdown();
+    closeDropdown();
 
-    }
-);
+});
 
 
 // ESCAPE KEY
 
-document.addEventListener(
-    "keydown",
-    function(event) {
+document.addEventListener("keydown", function (event) {
 
-        if (event.key === "Escape") {
+    if (event.key === "Escape") {
 
-            closeDropdown();
-
-        }
+        closeDropdown();
 
     }
-);
+
+});
 
 </script>
 
