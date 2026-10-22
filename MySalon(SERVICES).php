@@ -85,7 +85,7 @@ $services = $conn->query($sql);
         >
 
             <img
-                src="asset/image/images.jpg"
+                src="asset/image/Salon3.jpg"
                 alt="MySalon Logo"
             >
 
