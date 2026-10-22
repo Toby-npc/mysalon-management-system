@@ -86,7 +86,7 @@ $isCustomer =
         >
 
             <img
-                src="asset/image/images.jpg"
+                src="asset/Salon3.jpg"
                 alt="MySalon Logo"
             >
 
