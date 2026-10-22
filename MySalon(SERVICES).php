@@ -25,6 +25,28 @@ $image_folder = "asset/";
 
 
 // ==========================================
+// SERVICE PICTURES  (EDIT THIS LIST ONLY)
+//
+// Each line = ONE service.
+//   "word in the service name" => "picture file"
+// The word can be any part of the service name
+// (not case sensitive). Pictures live in asset/
+//
+// To add a new service picture, copy one line,
+// then change the word and the file name.
+// ==========================================
+
+$service_pictures = [
+
+    "haircut"    => "asset/haircut.jpg",      // 1. Haircut & styling
+    "colour"     => "asset/haircolor.jpg",    // 2. Hair colouring
+    "manicure"   => "asset/rebonding.jpg",    // 3. Manicure & pedicure
+    "facial"     => "asset/facialspa.jpg",    // 4. Facial & spa
+
+];
+
+
+// ==========================================
 // GET AVAILABLE SERVICES
 // ==========================================
 
@@ -36,8 +58,7 @@ $sql = "
         price,
         status,
         discount_percent,
-        promotion_status,
-        image
+        promotion_status
     FROM services
     WHERE status = 'available'
     ORDER BY service_id ASC
@@ -286,10 +307,23 @@ $services = $conn->query($sql);
 
                 // ==================================
                 // SERVICE PICTURE
-                // (basename() stops path tricks)
+                // (found from the list at the top)
                 // ==================================
 
-                $image_file = basename($service["image"] ?? "");
+                $image_file = "";
+
+                $service_name_lower = strtolower($service["service_name"]);
+
+                foreach ($service_pictures as $word => $file) {
+
+                    if (strpos($service_name_lower, $word) !== false) {
+
+                        $image_file = $file;
+                        break;
+
+                    }
+
+                }
 
                 $has_image = (
                     $image_file !== ""
