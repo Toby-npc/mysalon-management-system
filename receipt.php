@@ -1,86 +1,488 @@
 <?php
 
+session_start();
+include "db.php";
+
+
 // ==========================================
-// JANA RESIT PDF MINIMA (tanpa library)
-// Satu muka surat A4, teks sahaja.
+// CUSTOMER MESTI LOGIN
 // ==========================================
 
-function pdf_clean($text)
-{
-    $text = (string)$text;
-
-    if (function_exists("iconv")) {
-        $converted = @iconv("UTF-8", "ASCII//TRANSLIT//IGNORE", $text);
-        if ($converted !== false) {
-            $text = $converted;
-        }
-    }
-
-    $text = preg_replace('/[^\x20-\x7E]/', '', $text);
-
-    return str_replace(
-        ["\\", "(", ")"],
-        ["\\\\", "\\(", "\\)"],
-        $text
-    );
+if (
+    !isset($_SESSION["user_id"]) ||
+    !isset($_SESSION["role"]) ||
+    $_SESSION["role"] !== "customer"
+) {
+    header("Location: login.php");
+    exit();
 }
 
 
-function build_receipt_pdf($title, $subtitle, array $rows, $total_label, $total_value, $footnote)
-{
-    $ops = [];
+$customer_id = $_SESSION["user_id"];
 
-    // Tajuk
-    $ops[] = "BT /F2 22 Tf 60 780 Td (" . pdf_clean($title) . ") Tj ET";
-    $ops[] = "BT /F1 11 Tf 60 760 Td (" . pdf_clean($subtitle) . ") Tj ET";
-    $ops[] = "0.8 g 60 745 475 1 re f 0 g";
 
-    // Baris maklumat
-    $y = 715;
-    foreach ($rows as $row) {
-        $ops[] = "BT /F1 11 Tf 0.4 g 60 $y Td (" . pdf_clean($row[0]) . ") Tj ET 0 g";
-        $ops[] = "BT /F1 11 Tf 220 $y Td (" . pdf_clean($row[1]) . ") Tj ET";
-        $y -= 24;
-    }
+// ==========================================
+// AMBIL PAYMENT ID
+// ==========================================
 
-    // Jumlah
-    $y -= 6;
-    $ops[] = "0.8 g 60 " . ($y + 18) . " 475 1 re f 0 g";
-    $ops[] = "BT /F2 13 Tf 60 $y Td (" . pdf_clean($total_label) . ") Tj ET";
-    $ops[] = "BT /F2 13 Tf 220 $y Td (" . pdf_clean($total_value) . ") Tj ET";
+$payment_id = $_GET["id"] ?? "";
 
-    // Nota kaki
-    $ops[] = "BT /F1 9 Tf 0.45 g 60 60 Td (" . pdf_clean($footnote) . ") Tj ET";
-
-    $stream = implode("\n", $ops);
-
-    $objects = [];
-    $objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
-    $objects[2] = "<< /Type /Pages /Kids [3 0 R] /Count 1 >>";
-    $objects[3] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] "
-                . "/Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>";
-    $objects[4] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";
-    $objects[5] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>";
-    $objects[6] = "<< /Length " . strlen($stream) . " >>\nstream\n" . $stream . "\nendstream";
-
-    $pdf     = "%PDF-1.4\n";
-    $offsets = [];
-
-    foreach ($objects as $num => $body) {
-        $offsets[$num] = strlen($pdf);
-        $pdf .= $num . " 0 obj\n" . $body . "\nendobj\n";
-    }
-
-    $xref = strlen($pdf);
-    $pdf .= "xref\n0 " . (count($objects) + 1) . "\n";
-    $pdf .= "0000000000 65535 f \n";
-
-    foreach ($offsets as $off) {
-        $pdf .= sprintf("%010d 00000 n \n", $off);
-    }
-
-    $pdf .= "trailer\n<< /Size " . (count($objects) + 1) . " /Root 1 0 R >>\n";
-    $pdf .= "startxref\n" . $xref . "\n%%EOF";
-
-    return $pdf;
+if (
+    empty($payment_id) ||
+    !is_numeric($payment_id)
+) {
+    header("Location: MySalon(MYBOOKING).php");
+    exit();
 }
+
+
+// ==========================================
+// AMBIL PAYMENT + BOOKING + SERVICE
+// ==========================================
+
+$stmt = $conn->prepare(
+    "SELECT
+        payments.payment_id,
+        payments.amount,
+        payments.payment_method,
+        payments.payment_status,
+        payments.payment_date,
+
+        bookings.booking_id,
+        bookings.booking_date,
+        bookings.booking_time,
+        bookings.status AS booking_status,
+
+        services.service_name
+
+     FROM payments
+
+     INNER JOIN bookings
+        ON payments.booking_id = bookings.booking_id
+
+     INNER JOIN services
+        ON bookings.service_id = services.service_id
+
+     WHERE payments.payment_id = ?
+     AND bookings.customer_id = ?"
+);
+
+
+$stmt->bind_param(
+    "ii",
+    $payment_id,
+    $customer_id
+);
+
+
+$stmt->execute();
+
+$result = $stmt->get_result();
+
+
+// ==========================================
+// PAYMENT TAK WUJUD / BUKAN MILIK CUSTOMER
+// ==========================================
+
+if ($result->num_rows === 0) {
+
+    $stmt->close();
+    $conn->close();
+
+    header("Location: MySalon(MYBOOKING).php");
+    exit();
+}
+
+
+$receipt = $result->fetch_assoc();
+
+?>
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Receipt - MySalon
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="MySalon(CSS).css"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- ==========================================
+     NAVBAR
+=========================================== -->
+
+<nav>
+
+    <div class="logo">
+        MySalon
+    </div>
+
+
+    <ul>
+
+        <li>
+            <a href="MySalon(HOME).php">
+                Home
+            </a>
+        </li>
+
+
+        <li>
+            <a href="MySalon(SERVICES).php">
+                Services
+            </a>
+        </li>
+
+
+        <li>
+            <a href="MySalon(BOOKING).php">
+                Booking
+            </a>
+        </li>
+
+
+        <li>
+            <a href="MySalon(MYBOOKING).php">
+                My Booking
+            </a>
+        </li>
+
+
+        <li>
+
+            <span>
+
+                Hi,
+
+                <?php
+
+                echo htmlspecialchars(
+                    $_SESSION["name"]
+                );
+
+                ?>
+
+            </span>
+
+        </li>
+
+
+        <li>
+            <a href="logout.php">
+                Logout
+            </a>
+        </li>
+
+    </ul>
+
+</nav>
+
+
+<!-- ==========================================
+     RECEIPT
+=========================================== -->
+
+<section>
+
+
+    <div class="section-title">
+
+        <h2>
+            Payment Receipt
+        </h2>
+
+        <p>
+            Your payment has been recorded successfully
+        </p>
+
+    </div>
+
+
+
+    <div class="booking-form">
+
+
+        <h3 style="
+            text-align:center;
+            margin-bottom:30px;
+        ">
+            MySalon Receipt
+        </h3>
+
+
+
+        <!-- RECEIPT NUMBER -->
+
+        <p>
+
+            <strong>
+                Receipt No:
+            </strong>
+
+            #<?php
+            echo $receipt["payment_id"];
+            ?>
+
+        </p>
+
+
+
+        <!-- CUSTOMER -->
+
+        <p>
+
+            <strong>
+                Customer:
+            </strong>
+
+            <?php
+
+            echo htmlspecialchars(
+                $_SESSION["name"]
+            );
+
+            ?>
+
+        </p>
+
+
+
+        <!-- SERVICE -->
+
+        <p>
+
+            <strong>
+                Service:
+            </strong>
+
+            <?php
+
+            echo htmlspecialchars(
+                $receipt["service_name"]
+            );
+
+            ?>
+
+        </p>
+
+
+
+        <!-- APPOINTMENT DATE -->
+
+        <p>
+
+            <strong>
+                Appointment Date:
+            </strong>
+
+            <?php
+
+            echo htmlspecialchars(
+                $receipt["booking_date"]
+            );
+
+            ?>
+
+        </p>
+
+
+
+        <!-- APPOINTMENT TIME -->
+
+        <p>
+
+            <strong>
+                Appointment Time:
+            </strong>
+
+            <?php
+
+            echo date(
+                "h:i A",
+                strtotime(
+                    $receipt["booking_time"]
+                )
+            );
+
+            ?>
+
+        </p>
+
+
+
+        <!-- PAYMENT METHOD -->
+
+        <p>
+
+            <strong>
+                Payment Method:
+            </strong>
+
+            <?php
+
+            echo htmlspecialchars(
+                $receipt["payment_method"]
+            );
+
+            ?>
+
+        </p>
+
+
+
+        <!-- PAYMENT DATE -->
+
+        <p>
+
+            <strong>
+                Payment Date:
+            </strong>
+
+            <?php
+
+            echo date(
+                "d M Y, h:i A",
+                strtotime(
+                    $receipt["payment_date"]
+                )
+            );
+
+            ?>
+
+        </p>
+
+
+
+        <!-- AMOUNT -->
+
+        <p>
+
+            <strong>
+                Amount Paid:
+            </strong>
+
+            $<?php
+
+            echo number_format(
+                $receipt["amount"],
+                2
+            );
+
+            ?>
+
+        </p>
+
+
+
+        <!-- PAYMENT STATUS -->
+
+        <p>
+
+            <strong>
+                Payment Status:
+            </strong>
+
+            <?php
+
+            echo ucfirst(
+                htmlspecialchars(
+                    $receipt["payment_status"]
+                )
+            );
+
+            ?>
+
+        </p>
+
+
+
+        <hr style="
+            margin:30px 0;
+            border:none;
+            border-top:1px solid #ebdcd0;
+        ">
+
+
+
+        <!-- ==================================
+             BUTTONS
+        =================================== -->
+
+        <div
+            class="booking-actions"
+            style="justify-content:center;"
+        >
+
+
+            <a
+			href="download_receipt.php?id=<?php
+			echo $receipt["payment_id"];
+			?>"
+			class="button"
+			>
+			Download Receipt
+			</a>
+
+
+            <a
+                href="MySalon(MYBOOKING).php"
+                class="button"
+            >
+                Back to My Booking
+            </a>
+
+
+        </div>
+
+
+    </div>
+
+
+</section>
+
+
+
+<!-- ==========================================
+     FOOTER
+=========================================== -->
+
+<footer>
+
+    <p>
+        &copy; 2026 MySalon Management System.
+        All rights reserved.
+    </p>
+
+</footer>
+
+
+</body>
+
+</html>
+
+
+<?php
+
+$stmt->close();
+$conn->close();
+
+?>
