@@ -221,6 +221,31 @@ $receipt = $result->fetch_assoc();
     <div class="booking-form">
 
 
+        <!-- ==================================
+             EMAIL STATUS (dari bank_process / send_receipt_email)
+        =================================== -->
+
+        <?php
+        $mail_status = $_GET["mail"] ?? "";
+        ?>
+
+        <?php if ($mail_status === "sent"): ?>
+
+            <p style="text-align:center;margin-bottom:20px;color:#2e6b3a;">
+                A PDF receipt has been sent to your email.
+            </p>
+
+        <?php elseif ($mail_status === "failed"): ?>
+
+            <p style="text-align:center;margin-bottom:20px;color:#9c4444;">
+                We could not email the receipt. You can still download it below.
+            </p>
+
+        <?php endif; ?>
+
+
+
+
         <h3 style="
             text-align:center;
             margin-bottom:30px;
