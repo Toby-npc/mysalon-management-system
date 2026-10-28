@@ -1,6 +1,6 @@
 <?php
 
-// ==========================================
+// =========================================
 // BANK DEMO - KOD KONGSI
 //
 // Digunakan oleh: bank_payment.php, bank_login_demo.php,
