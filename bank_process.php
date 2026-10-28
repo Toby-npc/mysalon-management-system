@@ -101,6 +101,36 @@ if (($_GET["error"] ?? "") === "email") {
     $message = "Masukkan emel sebenar yang sah untuk menerima resit.";
 }
 
+if (($_GET["error"] ?? "") === "send") {
+
+    $why = $_GET["why"] ?? "";
+
+    $reasons = [
+        "nocfgfile"  => "Fail mail_config.php tiada di hosting. Muat naik fail itu ke folder yang sama.",
+        "cfgerror"   => "mail_config.php ada ralat sintaks. Semak tanda petikan dan koma.",
+        "nokey"      => "API key atau emel penghantar dalam mail_config.php belum diisi.",
+        "nopdflib"   => "Fail receipt_pdf.php tiada di hosting. Muat naik fail itu ke folder yang sama.",
+        "pdferror"   => "Resit PDF gagal dijana. Semak error log hosting.",
+        "nohttp"     => "Hosting mematikan cURL dan allow_url_fopen, jadi tak boleh sambung ke perkhidmatan emel.",
+        "network"    => "Hosting tak dapat sambung ke Brevo. Hosting percuma kadang-kadang menyekat sambungan keluar.",
+        "http_401"   => "Brevo menolak API key. Semak key, atau matikan sekatan di Brevo (Security > Authorised IPs).",
+        "http_400"   => "Brevo menolak permintaan. Pastikan emel penghantar sudah disahkan di Brevo (Senders).",
+        "http_403"   => "Brevo tak benarkan akaun ini menghantar. Semak status akaun dan emel penghantar.",
+        "exception"  => "Ralat dalaman semasa menghantar. Semak error log hosting.",
+        "bademail"   => "Emel tak sah."
+    ];
+
+    if (isset($reasons[$why])) {
+        $message = "Resit tak dapat dihantar: " . $reasons[$why];
+    } elseif (preg_match("/^http_\\d{3}$/", $why)) {
+        $message = "Resit tak dapat dihantar. Brevo menjawab dengan kod " . substr($why, 5) . ".";
+    } else {
+        $message = "Resit tak dapat dihantar.";
+    }
+
+    $message .= " Bayaran anda sudah direkodkan. Anda boleh cuba lagi atau langkau.";
+}
+
 $prefill = get_account_email($conn, $ctx["customer_id"]);
 
 bank_page_start($ctx, "Payment approved", $message);
