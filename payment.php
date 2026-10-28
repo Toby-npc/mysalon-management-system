@@ -311,6 +311,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
         // ==================================
+        // ONLINE BANKING DEMO
+        // Log masuk bank -> kelulusan ->
+        // payment direkod -> resit diemel
+        // ==================================
+
+        if ($payment_method === "Online Banking") {
+
+            $conn->close();
+
+            header(
+                "Location: bank_payment.php?id="
+                .
+                $booking_id
+            );
+
+            exit();
+        }
+
+
+        // ==================================
         // SIMULATED PAYMENT
         // ==================================
         //
