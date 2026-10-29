@@ -1,4 +1,4 @@
-/*
+
 <?php
 
 return [
@@ -6,6 +6,6 @@ return [
     "sender_email" => "dearkaby329@gmail.com",
     "sender_name"  => "MySalon"
 ];
-*/
+
 
 
