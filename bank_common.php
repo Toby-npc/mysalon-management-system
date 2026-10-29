@@ -2,12 +2,6 @@
 
 // =========================================
 // BANK DEMO - KOD KONGSI
-//
-// Digunakan oleh: bank_payment.php, bank_login_demo.php,
-// bank_approve.php, bank_process.php, send_receipt_email.php
-//
-// Bank-bank di sini ialah bank REKAAN. Tiada transaksi bank
-// sebenar. Jangan guna kata laluan sebenar.
 // ==========================================
 
 const DEMO_USER     = "demo.user";
@@ -218,9 +212,6 @@ function bank_page_start($ctx, $subtitle, $message = "")
 
     <div class="booking-form">
 
-        <p style="text-align:center;margin-bottom:20px;padding:10px;background:#fff3d6;color:#6b4700;border-radius:6px;">
-            Mod demo. Bank-bank ini rekaan dan bukan bank sebenar. Jangan masukkan kata laluan bank sebenar.
-        </p>
 
         <?php if ($message !== ""): ?>
             <p style="text-align:center;margin-bottom:20px;color:#9c4444;">
