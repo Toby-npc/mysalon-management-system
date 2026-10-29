@@ -86,16 +86,6 @@ function build_receipt_pdf($title, $subtitle, array $rows, $total_label, $total_
 }
 
 
-// ==========================================
-// RESIT UNTUK EMEL
-//
-// Guna Dompdf (Composer) jika ada di hosting, supaya sama dengan
-// download_receipt.php. Jika tiada atau gagal, guna PDF ringkas di atas.
-//
-// $data: payment_id, amount, payment_method, payment_status,
-//        payment_date, service_name, booking_date, booking_time,
-//        customer_name
-// ==========================================
 
 function receipt_find_autoload()
 {
